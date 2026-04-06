@@ -6,7 +6,6 @@
 <title>Superenge — Gerador de Assinatura de E-mail</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <meta name="description" content="Gerador de assinatura de e-mail institucional da Superenge Construtora. Crie sua assinatura Premium em segundos.">
-<link rel="icon" type="image/png" href="logo.png">
 <style>
 :root {
   --navy:   #050c42;
@@ -363,6 +362,10 @@ body{
 
     <div class="canvas-top">
       <span class="canvas-top-label">Pré-visualização</span>
+      <select id="variant" aria-label="Versão da assinatura">
+        <option value="v1" selected>Versão 1 (atual)</option>
+        <option value="v2">Versão 2 (gap uniforme)</option>
+      </select>
     </div>
 
     <div class="card preview-card">
@@ -487,9 +490,64 @@ function buildPremium(v) {
 </table>`;
 }
 
+function buildPremiumV2(v) {
+  const nm = v.nome.toLocaleUpperCase('pt-BR');
+  const cr = v.cargo.toLocaleUpperCase('pt-BR');
+  const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
+  const gap = '6px';
+  const lk = 'font-family:Arial,sans-serif;font-size:8px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0;display:block;line-height:18px;text-align:center;';
+  const sealsBelowLogo = v.seals ? `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:4px auto 0;"><tr>
+      <td style="padding:0 4px 0 0;vertical-align:middle;"><img src="${A.iso}" alt="ISO 9001" width="40" height="28" style="display:block;border:0;width:40px;height:28px;"></td>
+      <td style="padding:0;vertical-align:middle;"><img src="${A.pbqp}" alt="PBQP-H" width="34" height="26" style="display:block;border:0;width:34px;height:26px;"></td>
+    </tr></table>` : '';
+  const socialBlock = v.social ? `<tr><td style="padding:${gap} 0 0;">
+    <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+      <td bgcolor="#050c42" width="48" height="18" style="text-align:center;vertical-align:middle;padding:0;">
+        <a href="https://www.instagram.com/superengeconstrutora/" target="_blank" rel="noopener" style="${lk}width:48px;">Instagram</a>
+      </td>
+      <td width="4" style="padding:0;">&nbsp;</td>
+      <td bgcolor="#1735c4" width="36" height="18" style="text-align:center;vertical-align:middle;padding:0;">
+        <a href="https://www.linkedin.com/company/superenge/" target="_blank" rel="noopener" style="${lk}width:36px;">LinkedIn</a>
+      </td>
+      <td width="4" style="padding:0;">&nbsp;</td>
+      <td bgcolor="#4ba047" width="36" height="18" style="text-align:center;vertical-align:middle;padding:0;">
+        <a href="https://www.youtube.com/@SuperengeConstrutora" target="_blank" rel="noopener" style="${lk}width:36px;">YouTube</a>
+      </td>
+    </tr></table>
+  </td></tr>` : '';
+  const sloganBlock = v.slogan ? `<tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:10.5px;color:#4ba047;font-style:italic;font-weight:600;letter-spacing:.12px;line-height:1.25;">Construímos confiança, entregamos qualidade.</span></td></tr>` : '';
+  return `<table class="superenge-sig" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Source Sans Pro',Arial,sans-serif;max-width:700px;width:100%;">
+<tr>
+  <td width="160" style="width:160px;vertical-align:middle;padding:0 10px 0 0;border-right:2px solid #e0ecf8;text-align:center;">
+    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
+      <img src="${A.logo}" alt="Superenge" width="130" height="80" style="display:block;border:0;width:130px;height:80px;margin:0 auto;">
+    </a>
+    ${sealsBelowLogo}
+  </td>
+  <td style="vertical-align:middle;padding:0 0 0 18px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+      <tr><td><strong style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:15px;color:#050c42;font-weight:700;letter-spacing:.07em;line-height:1.1;">${nm}</strong></td></tr>
+      <tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:10px;color:#1735c4;font-weight:700;letter-spacing:.07em;line-height:1.2;">${cr}</span></td></tr>
+      <tr><td style="padding:${gap} 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:11px;color:#374350;line-height:1.55;">
+        ${phones(v)}
+      </td></tr>
+      <tr><td style="padding:${gap} 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:11px;color:#374350;line-height:1.55;">
+        <a href="mailto:${v.email}" style="color:#050c42;text-decoration:none;">${v.email}</a>
+        <span style="color:#b8c5d0;padding:0 5px;">·</span>
+        <a href="https://${host}" style="color:#4a5e72;text-decoration:underline;">${host}</a>
+      </td></tr>
+      ${socialBlock}
+      ${sloganBlock}
+    </table>
+  </td>
+</tr>
+</table>`;
+}
+
 function buildSig() {
   const v = V();
-  return buildPremium(v);
+  const variant = document.getElementById('variant')?.value || 'v1';
+  return variant === 'v2' ? buildPremiumV2(v) : buildPremium(v);
 }
 
 function render() {
