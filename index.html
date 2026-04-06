@@ -78,7 +78,7 @@ body{
 .ws{
   max-width:1200px;margin:0 auto;
   padding:28px clamp(14px,2.8vw,28px) 52px;
-  display:grid;grid-template-columns:310px 1fr;gap:22px;align-items:start;
+  display:grid;grid-template-columns:310px minmax(0,1fr);gap:22px;align-items:start;
 }
 
 /* ─── CARD ───────────────────────────────────────────────────── */
@@ -143,7 +143,7 @@ body{
 .tog input:checked + .sl::before{transform:translateX(15px);}
 
 /* ─── CANVAS ─────────────────────────────────────────────────── */
-.canvas{display:flex;flex-direction:column;gap:16px;}
+.canvas{display:flex;flex-direction:column;gap:16px;min-width:0;}
 .canvas-top{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   background:var(--white);border:1px solid var(--border);
@@ -167,14 +167,56 @@ body{
 }
 
 /* ─── PREVIEW ────────────────────────────────────────────────── */
-.preview-card{overflow-x:auto;}
+.preview-card{overflow-x:hidden;min-width:0;}
 .sig-wrap{
   background:
     linear-gradient(90deg,rgba(5,12,66,.025) 1px,transparent 1px) 0 0 / 22px 22px,
     linear-gradient(rgba(5,12,66,.025) 1px,transparent 1px) 0 0 / 22px 22px,
     #f8fafd;
   border-radius:10px;padding:28px 24px;
-  border:1px dashed #ccd8e6;overflow-x:auto;
+  border:1px dashed #ccd8e6;
+  overflow:hidden;
+  min-width:0;
+}
+/* Preview: mantém 2 colunas lado a lado no mobile (escala para caber) */
+.sig-preview-viewport{
+  width:100%;
+  min-width:0;
+  overflow:hidden;
+  line-height:0;
+  display:flex;
+  justify-content:center;
+}
+.sig-preview-scaler{
+  display:inline-block;
+  vertical-align:top;
+  transform-origin:top center;
+  line-height:normal;
+  flex-shrink:0;
+}
+/* Refinos visuais só no preview (HTML copiado permanece inalterado) */
+#preview .superenge-sig{
+  display:table;
+  width:700px;
+  max-width:none;
+  table-layout:fixed;
+}
+#preview .superenge-sig>tbody>tr>td:first-child,
+#preview .superenge-sig>tr>td:first-child{
+  width:160px!important;
+  max-width:160px;
+  box-sizing:border-box;
+}
+#preview .superenge-sig>tbody>tr>td:last-child,
+#preview .superenge-sig>tr>td:last-child{
+  width:auto;
+  word-wrap:break-word;
+  overflow-wrap:anywhere;
+}
+#preview .superenge-sig td:first-child img[alt="Superenge"]{
+  width:100%;
+  max-width:130px;
+  height:auto;
 }
 /* ── Animação do preview ─────────────────────────────────────── */
 @keyframes sigIn{
@@ -247,7 +289,7 @@ body{
 
 /* ─── RESPONSIVE ─────────────────────────────────────────────── */
 @media(max-width:1024px){
-  .ws{grid-template-columns:280px 1fr;gap:18px;}
+  .ws{grid-template-columns:280px minmax(0,1fr);gap:18px;}
   .hdr-in{padding:18px clamp(14px,3vw,26px) 20px;}
   .canvas-top{flex-wrap:wrap;justify-content:flex-start;}
   .canvas-top select{max-width:none;min-width:220px;}
@@ -550,8 +592,41 @@ function buildSig() {
   return variant === 'v2' ? buildPremiumV2(v) : buildPremium(v);
 }
 
+function applySigPreviewScale() {
+  const preview = document.getElementById('preview');
+  const vp = preview?.querySelector('.sig-preview-viewport');
+  const sc = preview?.querySelector('.sig-preview-scaler');
+  const table = preview?.querySelector('.superenge-sig');
+  if (!vp || !sc || !table) return;
+  const avail = Math.max(100, vp.clientWidth);
+  const natural = table.offsetWidth || 1;
+  const s = Math.min(1, avail / natural);
+  sc.style.transform = s < 0.998 ? 'scale(' + s + ')' : 'none';
+  const h = table.offsetHeight * s;
+  vp.style.height = h > 0 ? h + 'px' : '';
+}
+
+let sigScaleObserver = null;
+function initSigPreviewScale() {
+  const wrap = document.querySelector('.sig-wrap');
+  if (!wrap) return;
+  if (sigScaleObserver) sigScaleObserver.disconnect();
+  if (typeof ResizeObserver !== 'undefined') {
+    sigScaleObserver = new ResizeObserver(function () { applySigPreviewScale(); });
+    sigScaleObserver.observe(wrap);
+  }
+  window.addEventListener('resize', applySigPreviewScale, { passive: true });
+}
+
 function render() {
-  document.getElementById('preview').innerHTML = buildSig();
+  const preview = document.getElementById('preview');
+  preview.innerHTML =
+    '<div class="sig-preview-viewport"><div class="sig-preview-scaler">' + buildSig() + '</div></div>';
+  requestAnimationFrame(function () {
+    applySigPreviewScale();
+    requestAnimationFrame(applySigPreviewScale);
+  });
+  setTimeout(applySigPreviewScale, 480);
 }
 
 function toast(msg) {
@@ -609,11 +684,12 @@ function _copyFallback(html) {
   toast('✓ Assinatura copiada! Cole no Gmail ou Outlook.');
 }
 
-document.querySelectorAll('input,select').forEach(el => {
+document.querySelectorAll('input,select').forEach(function (el) {
   el.addEventListener('input', render);
   el.addEventListener('change', render);
 });
 
+initSigPreviewScale();
 render();
 </script>
 </body>
