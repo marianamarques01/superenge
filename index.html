@@ -187,25 +187,6 @@ body{
   line-height:normal;
   flex-shrink:0;
 }
-/* Wrapper só no preview: cortina por recorte (sem achatar logo) — GIF ok no html2canvas */
-#preview .sig-brand-curtain{
-  display:block;
-  overflow:hidden;
-  width:100%;
-  max-width:0;
-  min-width:0;
-  box-sizing:border-box;
-  animation:brandPreviewMotion 5s cubic-bezier(.72,.02,.28,.98) infinite;
-}
-#preview .superenge-sig > tbody > tr:first-child > td:first-child,
-#preview .superenge-sig > tr:first-child > td:first-child{
-  overflow:visible;
-  vertical-align:middle;
-}
-#preview .sig-brand-curtain > table{
-  display:inline-block;
-  vertical-align:middle;
-}
 /* Refinos visuais só no preview (HTML copiado permanece inalterado) */
 #preview .superenge-sig{
   display:table;
@@ -231,31 +212,6 @@ body{
   max-width:158px;
   height:auto;
 }
-/* ── Cortina da esquerda: largura visível 0 → 100% (conteúdo não é espremido) ── */
-@keyframes brandPreviewMotion{
-  0%,100%{
-    opacity:1;
-    max-width:0;
-  }
-  28%,72%{
-    opacity:1;
-    max-width:100%;
-  }
-}
-@media (prefers-reduced-motion:reduce){
-  #preview .sig-brand-curtain{
-    animation:fadeIn .35s ease both;
-    filter:none;
-    max-width:100%!important;
-  }
-}
-@keyframes fadeIn{
-  from { opacity:0; }
-  to   { opacity:1; }
-}
-/* hover suave na logo dentro do preview */
-#preview a img { transition:transform .25s ease, opacity .2s ease; }
-#preview a:hover img { transform:scale(1.04); opacity:.88; }
 
 /* ─── ACTIONS ────────────────────────────────────────────────── */
 .actions{display:flex;flex-wrap:wrap;gap:7px;}
@@ -396,7 +352,6 @@ body{
       </div>
       <div class="toggles">
         <div class="trow"><span>Exibir slogan</span><label class="tog"><input type="checkbox" id="showSlogan" checked><span class="sl"></span></label></div>
-        <div class="trow"><span>Redes sociais</span><label class="tog"><input type="checkbox" id="showSocial"><span class="sl"></span></label></div>
         <div class="trow"><span>Selos ISO / PBQP-H</span><label class="tog"><input type="checkbox" id="showSeals" checked><span class="sl"></span></label></div>
         <div class="trow"><span>Telefone fixo</span><label class="tog"><input type="checkbox" id="showFixo" checked><span class="sl"></span></label></div>
       </div>
@@ -424,12 +379,8 @@ body{
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="9" height="12" rx="1.5"/><path d="M5 1h7.5A1.5 1.5 0 0114 2.5V13"/></svg>
         Copiar HTML
       </button>
-      <button class="btn btn-o" type="button" id="btnExportGif" onclick="exportPreviewGif()">
-        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm11 0H3v7h10V3zM5 13.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5z"/></svg>
-        Baixar GIF animado
-      </button>
     </div>
-    <p class="preview-email-hint" role="note"><strong>Imagens no Gmail:</strong> com repositório <strong>público</strong> no GitHub, basta <code>git push</code> da pasta <code>assinatura-email/</code> (CDN jsDelivr). Se o GitHub for <strong>privado</strong>, use hospedagem gratuita dos3 PNG (ex.: ImgBB) e preencha <code>SIG_EMAIL_IMAGE_URLS</code> no código. Pré-visualização em ficheiro local usa imagens embutidas. Animação CSS não vai no HTML colado.</p>
+    <p class="preview-email-hint" role="note"><strong>Imagens no Gmail:</strong> com repositório <strong>público</strong> no GitHub, faça <code>git push</code> da pasta <code>assinatura-email/</code> (URLs via <code>raw.githubusercontent.com</code>). Se o GitHub for <strong>privado</strong>, use links públicos aos 3 PNG (ex.: ImgBB) e preencha <code>SIG_EMAIL_IMAGE_URLS</code>. Em ficheiro local a pré-visualização usa imagens embutidas.</p>
 
   </section>
 </main>
@@ -446,11 +397,10 @@ const A = {
 
 /**
  * Imagens para colar no Gmail (URLs https). Gmail costuma bloquear data:image no HTML colado.
- * Padrão: jsDelivr + repositório público no GitHub — só precisa dar git push da pasta assinatura-email/.
- * Sem acesso ao site da Superenge. Se o repo for privado, torne-o público ou troque SIG_EMAIL_IMAGE_BASE
- * por links de Imgur, Cloudinary, etc.
+ * Padrão: raw.githubusercontent.com (costuma funcionar melhor com o proxy de imagens do Gmail que jsDelivr).
+ * Só precisa de git push da pasta assinatura-email/. Repo privado: use SIG_EMAIL_IMAGE_URLS ou torne o repo público.
  */
-var SIG_EMAIL_IMAGE_BASE = 'https://cdn.jsdelivr.net/gh/marianamarques01/superenge@main/assinatura-email/';
+var SIG_EMAIL_IMAGE_BASE = 'https://raw.githubusercontent.com/marianamarques01/superenge/main/assinatura-email/';
 /** Repositório GitHub privado? jsDelivr não funciona. Suba os 3 PNG em ImgBB (ou similar) e preencha as URLs aqui — ou crie um repo público só com assinatura-email/. */
 var SIG_EMAIL_IMAGE_URLS = null;
 function getSigImageUrlsForEmail() {
@@ -477,7 +427,6 @@ function V() {
     email:  document.getElementById('email').value.trim(),
     web:    document.getElementById('website').value.trim(),
     slogan: document.getElementById('showSlogan').checked,
-    social: document.getElementById('showSocial').checked,
     seals:  document.getElementById('showSeals').checked,
     showFixo: document.getElementById('showFixo').checked,
   };
@@ -490,6 +439,24 @@ function phones(v) {
   return p.join(sep);
 }
 
+/** Texto simples para colar em campos só-plain e para a área de transferência junto do HTML. */
+function buildSignaturePlain(v) {
+  const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
+  const lines = [];
+  if (v.nome) lines.push(v.nome);
+  if (v.cargo) lines.push(v.cargo);
+  const tel = [];
+  if (v.cel) tel.push(v.cel);
+  if (v.showFixo && v.fixo) tel.push(v.fixo);
+  if (tel.length) lines.push(tel.join(' | '));
+  const bits = [];
+  if (v.email) bits.push(v.email);
+  if (host) bits.push(host);
+  if (bits.length) lines.push(bits.join(' · '));
+  if (v.slogan) lines.push('Construímos confiança, entregamos qualidade.');
+  return lines.join('\n');
+}
+
 // ── Assinatura (layout com espaçamento uniforme entre blocos) ───
 function buildSignature(v, opts) {
   const forEmail = opts && opts.forEmail;
@@ -498,26 +465,10 @@ function buildSignature(v, opts) {
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
   const gap = '8px';
-  const lk = 'font-family:Arial,sans-serif;font-size:10px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0;display:block;line-height:22px;text-align:center;';
   const sealsBelowLogo = v.seals ? `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:6px auto 0;"><tr>
       <td style="padding:0 5px 0 0;vertical-align:middle;"><img src="${I.iso}" alt="ISO 9001" width="46" height="32" style="display:block;border:0;width:46px;height:32px;margin-left:-5px;"></td>
       <td style="padding:0;vertical-align:middle;"><img src="${I.pbqp}" alt="PBQP-H" width="40" height="30" style="display:block;border:0;width:40px;height:30px;"></td>
     </tr></table>` : '';
-  const socialBlock = v.social ? `<tr><td style="padding:${gap} 0 0;">
-    <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
-      <td bgcolor="#050c42" width="52" height="22" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.instagram.com/superengeconstrutora/" target="_blank" rel="noopener" style="${lk}width:52px;">Instagram</a>
-      </td>
-      <td width="5" style="padding:0;">&nbsp;</td>
-      <td bgcolor="#1735c4" width="40" height="22" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.linkedin.com/company/superenge/" target="_blank" rel="noopener" style="${lk}width:40px;">LinkedIn</a>
-      </td>
-      <td width="5" style="padding:0;">&nbsp;</td>
-      <td bgcolor="#4ba047" width="40" height="22" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.youtube.com/@SuperengeConstrutora" target="_blank" rel="noopener" style="${lk}width:40px;">YouTube</a>
-      </td>
-    </tr></table>
-  </td></tr>` : '';
   const sloganBlock = v.slogan ? `<tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:14.5px;color:#4ba047;font-style:italic;font-weight:600;letter-spacing:.12px;line-height:1.32;">Construímos confiança, entregamos qualidade.</span></td></tr>` : '';
   return `<table class="superenge-sig" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Source Sans Pro',Arial,sans-serif;max-width:900px;width:100%;">
 <tr>
@@ -539,7 +490,6 @@ function buildSignature(v, opts) {
         <span style="color:#b8c5d0;padding:0 5px;">·</span>
         <a href="https://${host}" style="color:#4a5e72;text-decoration:underline;">${host}</a>
       </td></tr>
-      ${socialBlock}
       ${sloganBlock}
     </table>
   </td>
@@ -549,17 +499,6 @@ function buildSignature(v, opts) {
 
 function buildSig() {
   return buildSignature(V());
-}
-
-function wrapPreviewBrandColumn() {
-  const td =
-    document.querySelector('#preview .superenge-sig > tbody > tr:first-child > td:first-child') ||
-    document.querySelector('#preview .superenge-sig > tr:first-child > td:first-child');
-  if (!td || td.querySelector(':scope > .sig-brand-curtain')) return;
-  const wrap = document.createElement('div');
-  wrap.className = 'sig-brand-curtain';
-  while (td.firstChild) wrap.appendChild(td.firstChild);
-  td.appendChild(wrap);
 }
 
 function applySigPreviewScale() {
@@ -600,7 +539,6 @@ function render() {
   const preview = document.getElementById('preview');
   preview.innerHTML =
     '<div class="sig-preview-viewport"><div class="sig-preview-scaler">' + buildSig() + '</div></div>';
-  wrapPreviewBrandColumn();
   requestAnimationFrame(function () {
     applySigPreviewScale();
     requestAnimationFrame(applySigPreviewScale);
@@ -616,13 +554,15 @@ function toast(msg) {
 }
 
 function copyAndPaste() {
-  const html = buildSignature(V(), { forEmail: true });
+  const v = V();
+  const html = buildSignature(v, { forEmail: true });
+  const plain = buildSignaturePlain(v);
   // ClipboardItem copia HTML limpo sem ruído do DOM — evita duplicação no Gmail
   if (window.ClipboardItem) {
     navigator.clipboard.write([
       new ClipboardItem({
         'text/html':  new Blob([html], {type:'text/html'}),
-        'text/plain': new Blob([''],   {type:'text/plain'}),
+        'text/plain': new Blob([plain], {type:'text/plain'}),
       })
     ])
     .then(() => toast('✓ Assinatura copiada! Cole no Gmail ou Outlook.'))
@@ -661,145 +601,6 @@ function _copyFallback(html) {
   s.removeAllRanges();
   document.body.removeChild(tmp);
   toast('✓ Assinatura copiada! Cole no Gmail ou Outlook.');
-}
-
-function _parseTimeMs(cssVal) {
-  if (!cssVal || cssVal === 'auto') return 5000;
-  const v = String(cssVal).trim();
-  if (v.endsWith('ms')) return parseFloat(v) || 5000;
-  if (v.endsWith('s')) return (parseFloat(v) || 5) * 1000;
-  const n = parseFloat(v);
-  return isNaN(n) ? 5000 : n * 1000;
-}
-
-function _normalizeFrameCanvas(src, w, h) {
-  if (src.width === w && src.height === h) return src;
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  const cx = c.getContext('2d');
-  cx.clearRect(0, 0, w, h);
-  cx.drawImage(src, 0, 0, w, h);
-  return c;
-}
-
-function getPreviewBrandMotionEls() {
-  const wrap = document.querySelector('#preview .sig-brand-curtain');
-  return wrap ? [wrap] : [];
-}
-
-async function exportPreviewGif() {
-  const target = document.querySelector('#preview .sig-preview-viewport');
-  const scaler = document.querySelector('#preview .sig-preview-scaler');
-  const brandEls = getPreviewBrandMotionEls();
-  const btn = document.getElementById('btnExportGif');
-  if (!target || !scaler || brandEls.length === 0) {
-    toast('Pré-visualize a assinatura antes de exportar o GIF.');
-    return;
-  }
-  if (btn) btn.disabled = true;
-  toast('Gerando GIF… pode levar alguns segundos');
-
-  const save = {
-    transform: scaler.style.transform,
-  };
-
-  try {
-    if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    const html2canvasMod = await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js');
-    const html2canvas = html2canvasMod.default || html2canvasMod;
-    const ge = await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js');
-    const GIFEncoder = ge.GIFEncoder || ge.default;
-    const quantize = ge.quantize;
-    const applyPalette = ge.applyPalette;
-    if (typeof GIFEncoder !== 'function' || typeof quantize !== 'function' || typeof applyPalette !== 'function') {
-      throw new Error('Bibliotecas GIF não carregaram');
-    }
-
-    const cs = getComputedStyle(brandEls[0]);
-    const durationMs = Math.max(400, _parseTimeMs(cs.animationDuration));
-    const numFrames = 40;
-    const exportScale = Math.min(3.25, Math.max(2.75, window.devicePixelRatio || 2.75));
-    /* gifenc: delay em ms (internamente /10 → centésimos no arquivo GIF) */
-    const delayMs = Math.max(20, Math.round(durationMs / Math.max(1, numFrames - 1)));
-
-    scaler.style.transform = 'none';
-    scaler.style.marginBottom = '';
-    brandEls.forEach(function (el) {
-      el.style.animationPlayState = 'paused';
-    });
-    void scaler.offsetHeight;
-
-    const gif = GIFEncoder();
-    let cw = 0;
-    let ch = 0;
-    const qOpts = { format: 'rgba4444', oneBitAlpha: true };
-    for (let i = 0; i < numFrames; i++) {
-      const t = numFrames <= 1 ? 1 : i / (numFrames - 1);
-      const delayStr = (-t * durationMs).toFixed(2) + 'ms';
-      brandEls.forEach(function (el) {
-        el.style.animationDelay = delayStr;
-      });
-      void brandEls[0].offsetHeight;
-      await new Promise(function (resolve) {
-        requestAnimationFrame(function () { requestAnimationFrame(resolve); });
-      });
-      let canvas = await html2canvas(target, {
-        backgroundColor: null,
-        scale: exportScale,
-        logging: false,
-        useCORS: true,
-        allowTaint: false,
-      });
-      if (!cw) {
-        cw = canvas.width;
-        ch = canvas.height;
-      } else {
-        canvas = _normalizeFrameCanvas(canvas, cw, ch);
-      }
-      const ctx = canvas.getContext('2d');
-      const im = ctx.getImageData(0, 0, cw, ch);
-      const palette = quantize(im.data, 256, qOpts);
-      const index = applyPalette(im.data, palette, 'rgba4444');
-      let transparentIdx = -1;
-      for (let pi = 0; pi < palette.length; pi++) {
-        if (palette[pi].length > 3 && palette[pi][3] === 0) {
-          transparentIdx = pi;
-          break;
-        }
-      }
-      const frameOpts = { palette: palette, delay: delayMs };
-      if (transparentIdx >= 0) {
-        frameOpts.transparent = true;
-        frameOpts.transparentIndex = transparentIdx;
-      }
-      gif.writeFrame(index, cw, ch, frameOpts);
-    }
-    gif.finish();
-    const bytes = gif.bytes();
-    const blob = new Blob([bytes], { type: 'image/gif' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'superenge-assinatura-animada.gif';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast('✓ GIF baixado. Insira no e-mail como imagem.');
-  } catch (err) {
-    console.error(err);
-    toast('Falha ao gerar o GIF: ' + (err && err.message ? err.message : 'rede ou bloqueio de script.'));
-  } finally {
-    scaler.style.transform = save.transform;
-    brandEls.forEach(function (el) {
-      el.style.animationPlayState = '';
-      el.style.animationDelay = '';
-    });
-    render();
-    if (btn) btn.disabled = false;
-  }
 }
 
 document.querySelectorAll('input,select').forEach(function (el) {
