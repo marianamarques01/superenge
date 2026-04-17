@@ -145,7 +145,7 @@ body{
 /* ─── CANVAS ─────────────────────────────────────────────────── */
 .canvas{display:flex;flex-direction:column;gap:16px;min-width:0;}
 .canvas-top{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  display:flex;align-items:center;justify-content:flex-start;gap:12px;
   background:var(--white);border:1px solid var(--border);
   border-radius:var(--r);padding:12px 16px;box-shadow:var(--sh-sm);
 }
@@ -154,38 +154,31 @@ body{
   font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);
   white-space:nowrap;
 }
-.canvas-top select{
-  padding:7px 30px 7px 11px;border:1.5px solid var(--border);border-radius:8px;
-  font-family:'Outfit',system-ui,sans-serif;font-size:12.5px;font-weight:600;
-  color:var(--navy);background:#f6f9fd;cursor:pointer;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%238da0b0' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 10px center;
-  transition:border-color var(--tr),box-shadow var(--tr);flex:1;max-width:280px;
-}
-.canvas-top select:focus{
-  outline:none;border-color:var(--cobalt);box-shadow:0 0 0 3px rgba(23,53,196,.10);
+.preview-email-hint{
+  font-size:12px;line-height:1.5;color:var(--muted);
+  max-width:40rem;margin:2px auto 0;text-align:center;padding:0 10px;
 }
 
 /* ─── PREVIEW ────────────────────────────────────────────────── */
-.preview-card{overflow-x:hidden;min-width:0;}
+.preview-card{overflow-x:auto;overflow-y:visible;min-width:0;}
 .sig-wrap{
-  background:
-    linear-gradient(90deg,rgba(5,12,66,.025) 1px,transparent 1px) 0 0 / 22px 22px,
-    linear-gradient(rgba(5,12,66,.025) 1px,transparent 1px) 0 0 / 22px 22px,
-    #f8fafd;
+  background:transparent;
   border-radius:10px;padding:28px 24px;
+  padding-bottom:32px;
   border:1px dashed #ccd8e6;
-  overflow:hidden;
+  overflow-x:auto;
+  overflow-y:visible;
   min-width:0;
 }
 /* Preview: mantém 2 colunas lado a lado no mobile (escala para caber) */
 .sig-preview-viewport{
   width:100%;
   min-width:0;
-  overflow:hidden;
-  line-height:0;
+  overflow:visible;
+  line-height:1;
   display:flex;
   justify-content:center;
+  background:transparent;
 }
 .sig-preview-scaler{
   display:inline-block;
@@ -194,17 +187,36 @@ body{
   line-height:normal;
   flex-shrink:0;
 }
+/* Wrapper só no preview: cortina por recorte (sem achatar logo) — GIF ok no html2canvas */
+#preview .sig-brand-curtain{
+  display:block;
+  overflow:hidden;
+  width:100%;
+  max-width:0;
+  min-width:0;
+  box-sizing:border-box;
+  animation:brandPreviewMotion 5s cubic-bezier(.72,.02,.28,.98) infinite;
+}
+#preview .superenge-sig > tbody > tr:first-child > td:first-child,
+#preview .superenge-sig > tr:first-child > td:first-child{
+  overflow:visible;
+  vertical-align:middle;
+}
+#preview .sig-brand-curtain > table{
+  display:inline-block;
+  vertical-align:middle;
+}
 /* Refinos visuais só no preview (HTML copiado permanece inalterado) */
 #preview .superenge-sig{
   display:table;
-  width:700px;
+  width:900px;
   max-width:none;
   table-layout:fixed;
 }
 #preview .superenge-sig>tbody>tr>td:first-child,
 #preview .superenge-sig>tr>td:first-child{
-  width:160px!important;
-  max-width:160px;
+  width:190px!important;
+  max-width:190px;
   box-sizing:border-box;
 }
 #preview .superenge-sig>tbody>tr>td:last-child,
@@ -213,41 +225,40 @@ body{
   word-wrap:break-word;
   overflow-wrap:anywhere;
 }
-#preview .superenge-sig td:first-child img[alt="Superenge"]{
+#preview .superenge-sig > tbody > tr:first-child > td:first-child img[alt="Superenge"],
+#preview .superenge-sig > tr:first-child > td:first-child img[alt="Superenge"]{
   width:100%;
-  max-width:130px;
+  max-width:158px;
   height:auto;
 }
-/* ── Animação do preview ─────────────────────────────────────── */
-@keyframes sigIn{
-  0%   { opacity:0; transform:translateY(10px) scale(.99); }
-  60%  { opacity:1; transform:translateY(-2px) scale(1.002); }
-  100% { opacity:1; transform:translateY(0)   scale(1); }
+/* ── Cortina da esquerda: largura visível 0 → 100% (conteúdo não é espremido) ── */
+@keyframes brandPreviewMotion{
+  0%,100%{
+    opacity:1;
+    max-width:0;
+  }
+  28%,72%{
+    opacity:1;
+    max-width:100%;
+  }
 }
-@keyframes barSlide{
-  from { clip-path:inset(0 100% 0 0); opacity:0; }
-  to   { clip-path:inset(0 0% 0 0);   opacity:1; }
+@media (prefers-reduced-motion:reduce){
+  #preview .sig-brand-curtain{
+    animation:fadeIn .35s ease both;
+    filter:none;
+    max-width:100%!important;
+  }
 }
-@keyframes logoFloat{
-  0%,100% { transform:translateY(0);   }
-  50%     { transform:translateY(-3px); }
-}
-#preview .superenge-sig{
-  animation: sigIn .45s cubic-bezier(.22,.61,.36,1) both;
-}
-/* barra dupla da assinatura premium anima no preview */
-#preview [style*="background:#050c42"]{
-  animation: barSlide .5s .25s cubic-bezier(.22,.61,.36,1) both;
-}
-#preview [style*="background:#4ba047"]{
-  animation: barSlide .5s .35s cubic-bezier(.22,.61,.36,1) both;
+@keyframes fadeIn{
+  from { opacity:0; }
+  to   { opacity:1; }
 }
 /* hover suave na logo dentro do preview */
 #preview a img { transition:transform .25s ease, opacity .2s ease; }
 #preview a:hover img { transform:scale(1.04); opacity:.88; }
 
 /* ─── ACTIONS ────────────────────────────────────────────────── */
-.actions{display:flex;gap:7px;}
+.actions{display:flex;flex-wrap:wrap;gap:7px;}
 .btn{
   display:flex;align-items:center;justify-content:center;gap:6px;
   padding:11px 14px;border:none;border-radius:9px;
@@ -255,6 +266,7 @@ body{
   cursor:pointer;transition:all var(--tr);letter-spacing:.01em;flex:1;
 }
 .btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none;pointer-events:none;}
 .btn svg{width:13px;height:13px;flex-shrink:0;}
 .btn-p{
   background:linear-gradient(130deg,var(--royal) 0%,var(--cobalt) 100%);
@@ -291,8 +303,6 @@ body{
 @media(max-width:1024px){
   .ws{grid-template-columns:280px minmax(0,1fr);gap:18px;}
   .hdr-in{padding:18px clamp(14px,3vw,26px) 20px;}
-  .canvas-top{flex-wrap:wrap;justify-content:flex-start;}
-  .canvas-top select{max-width:none;min-width:220px;}
 }
 
 @media(max-width:860px){
@@ -310,7 +320,7 @@ body{
   .hdr-seals{display:none;}
   .actions{flex-wrap:wrap;}
   .btn{flex:1 1 calc(50% - 4px);}
-  .sig-wrap{padding:20px 14px;}
+  .sig-wrap{padding:20px 14px 26px;}
 }
 
 @media(max-width:640px){
@@ -320,15 +330,8 @@ body{
   .field input,.field select{font-size:16px;}
   .canvas-top{
     padding:10px 12px;
-    flex-direction:column;
-    align-items:stretch;
   }
   .canvas-top-label{white-space:normal;}
-  .canvas-top select{
-    width:100%;
-    min-width:0;
-    font-size:14px;
-  }
   .actions{flex-direction:column;}
   .btn{flex:1 1 auto;width:100%;}
   .toast{
@@ -348,7 +351,7 @@ body{
   .hdr-text h1{line-height:1.3;}
   .card-title{letter-spacing:.1em;}
   .trow span{font-size:12px;}
-  .sig-wrap{padding:16px 10px;}
+  .sig-wrap{padding:16px 10px 24px;}
   .ftr{padding:10px 14px 22px;}
 }
 </style>
@@ -404,10 +407,6 @@ body{
 
     <div class="canvas-top">
       <span class="canvas-top-label">Pré-visualização</span>
-      <select id="variant" aria-label="Versão da assinatura">
-        <option value="v1" selected>Versão 1 (atual)</option>
-        <option value="v2">Versão 2 (gap uniforme)</option>
-      </select>
     </div>
 
     <div class="card preview-card">
@@ -425,7 +424,12 @@ body{
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="9" height="12" rx="1.5"/><path d="M5 1h7.5A1.5 1.5 0 0114 2.5V13"/></svg>
         Copiar HTML
       </button>
+      <button class="btn btn-o" type="button" id="btnExportGif" onclick="exportPreviewGif()">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm11 0H3v7h10V3zM5 13.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5z"/></svg>
+        Baixar GIF animado
+      </button>
     </div>
+    <p class="preview-email-hint" role="note">As imagens da assinatura colada vêm do <strong>GitHub (CDN jsDelivr)</strong>, não do site da empresa: faça <code>git push</code> da pasta <code>assinatura-email/</code> no repositório público. Pré-visualização em arquivo local continua com imagens embutidas. Animação CSS não vai no HTML; use o GIF se quiser movimento.</p>
 
   </section>
 </main>
@@ -439,6 +443,25 @@ const A = {
   iso:       'data:image/png;base64,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',
   pbqp:      'data:image/png;base64,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',
 };
+
+/**
+ * Imagens para colar no Gmail (URLs https). Gmail costuma bloquear data:image no HTML colado.
+ * Padrão: jsDelivr + repositório público no GitHub — só precisa dar git push da pasta assinatura-email/.
+ * Sem acesso ao site da Superenge. Se o repo for privado, torne-o público ou troque SIG_EMAIL_IMAGE_BASE
+ * por links de Imgur, Cloudinary, etc.
+ */
+var SIG_EMAIL_IMAGE_BASE = 'https://cdn.jsdelivr.net/gh/marianamarques01/superenge@main/assinatura-email/';
+function getSigImageUrlsForEmail() {
+  return {
+    logo: SIG_EMAIL_IMAGE_BASE + 'logo-marca.png',
+    iso: SIG_EMAIL_IMAGE_BASE + 'selo-iso-9001.png',
+    pbqp: SIG_EMAIL_IMAGE_BASE + 'selo-pbqp-h.png',
+  };
+}
+function getSigImagesForPreview() {
+  if (typeof location !== 'undefined' && location.protocol === 'file:') return A;
+  return getSigImageUrlsForEmail();
+}
 
 function V() {
   return {
@@ -455,33 +478,6 @@ function V() {
   };
 }
 
-function social(v) {
-  if (!v.social) return '';
-  // Ícones via bgcolor em tabela — único método confiável em Gmail/Outlook/Apple Mail
-  // SVG data URIs são bloqueados pelo Gmail; bgcolor em <td> funciona em todos os clientes
-  const lk = 'font-family:Arial,sans-serif;font-size:8px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0;display:block;line-height:18px;text-align:center;';
-  return `<tr><td style="padding:7px 0 0;">
-    <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
-      <td bgcolor="#050c42" width="48" height="18" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.instagram.com/superengeconstrutora/" target="_blank" rel="noopener" style="${lk}width:48px;">Instagram</a>
-      </td>
-      <td width="4" style="padding:0;">&nbsp;</td>
-      <td bgcolor="#1735c4" width="36" height="18" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.linkedin.com/company/superenge/" target="_blank" rel="noopener" style="${lk}width:36px;">LinkedIn</a>
-      </td>
-      <td width="4" style="padding:0;">&nbsp;</td>
-      <td bgcolor="#4ba047" width="36" height="18" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.youtube.com/@SuperengeConstrutora" target="_blank" rel="noopener" style="${lk}width:36px;">YouTube</a>
-      </td>
-    </tr></table>
-  </td></tr>`;
-}
-
-function slogan(v, c) {
-  if (!v.slogan) return '';
-  return `<tr><td style="padding:10px 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:10.5px;color:${c};font-style:italic;font-weight:600;letter-spacing:.12px;line-height:1.25;">Construímos confiança, entregamos qualidade.</span></td></tr>`;
-}
-
 function phones(v) {
   const sep = '<span style="color:#b8c5d0;padding:0 5px;">|</span>';
   let p = [`<a href="tel:+55${v.cel.replace(/\s/g,'')}" style="color:#2d3a44;text-decoration:none;white-space:nowrap;">${v.cel}</a>`];
@@ -489,91 +485,51 @@ function phones(v) {
   return p.join(sep);
 }
 
-// ── PREMIUM ────────────────────────────────────────────────────
-function buildPremium(v) {
+// ── Assinatura (layout com espaçamento uniforme entre blocos) ───
+function buildSignature(v, opts) {
+  const forEmail = opts && opts.forEmail;
+  const I = forEmail ? getSigImageUrlsForEmail() : getSigImagesForPreview();
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const sealsBelowLogo = v.seals ? `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:4px auto 0;"><tr>
-      <td style="padding:0 4px 0 0;vertical-align:middle;"><img src="${A.iso}" alt="ISO 9001" width="40" height="28" style="display:block;border:0;width:40px;height:28px;"></td>
-      <td style="padding:0;vertical-align:middle;"><img src="${A.pbqp}" alt="PBQP-H" width="34" height="26" style="display:block;border:0;width:34px;height:26px;"></td>
-    </tr></table>` : '';
-  return `<table class="superenge-sig" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Source Sans Pro',Arial,sans-serif;max-width:700px;width:100%;">
-<tr>
-  <td width="160" style="width:160px;vertical-align:middle;padding:0 10px 0 0;border-right:2px solid #e0ecf8;text-align:center;">
-    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
-      <img src="${A.logo}" alt="Superenge" width="130" height="80" style="display:block;border:0;width:130px;height:80px;margin:0 auto;">
-    </a>
-    ${sealsBelowLogo}
-  </td>
-  <td style="vertical-align:middle;padding:0 0 0 18px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-      <tr><td><strong style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:15px;color:#050c42;font-weight:700;letter-spacing:.07em;line-height:1.1;">${nm}</strong></td></tr>
-      <tr><td style="padding:3px 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:10px;color:#1735c4;font-weight:700;letter-spacing:.07em;line-height:1.2;">${cr}</span></td></tr>
-      <tr><td style="padding:7px 0 5px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
-          <td width="84" style="height:2px;background:#050c42;font-size:0;line-height:0;">&nbsp;</td>
-          <td width="20" style="height:2px;background:#4ba047;font-size:0;line-height:0;">&nbsp;</td>
-        </tr></table>
-      </td></tr>
-      <tr><td style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:11px;color:#374350;line-height:1.55;">
-        ${phones(v)}
-      </td></tr>
-      <tr><td style="padding:1px 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:11px;color:#374350;line-height:1.55;">
-        <a href="mailto:${v.email}" style="color:#050c42;text-decoration:none;">${v.email}</a>
-        <span style="color:#b8c5d0;padding:0 5px;">·</span>
-        <a href="https://${host}" style="color:#4a5e72;text-decoration:underline;">${host}</a>
-      </td></tr>
-      ${social(v)}
-      ${slogan(v,'#4ba047')}
-    </table>
-  </td>
-</tr>
-</table>`;
-}
-
-function buildPremiumV2(v) {
-  const nm = v.nome.toLocaleUpperCase('pt-BR');
-  const cr = v.cargo.toLocaleUpperCase('pt-BR');
-  const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const gap = '6px';
-  const lk = 'font-family:Arial,sans-serif;font-size:8px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0;display:block;line-height:18px;text-align:center;';
-  const sealsBelowLogo = v.seals ? `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:4px auto 0;"><tr>
-      <td style="padding:0 4px 0 0;vertical-align:middle;"><img src="${A.iso}" alt="ISO 9001" width="40" height="28" style="display:block;border:0;width:40px;height:28px;"></td>
-      <td style="padding:0;vertical-align:middle;"><img src="${A.pbqp}" alt="PBQP-H" width="34" height="26" style="display:block;border:0;width:34px;height:26px;"></td>
+  const gap = '8px';
+  const lk = 'font-family:Arial,sans-serif;font-size:10px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0;display:block;line-height:22px;text-align:center;';
+  const sealsBelowLogo = v.seals ? `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:6px auto 0;"><tr>
+      <td style="padding:0 5px 0 0;vertical-align:middle;"><img src="${I.iso}" alt="ISO 9001" width="46" height="32" style="display:block;border:0;width:46px;height:32px;margin-left:-5px;"></td>
+      <td style="padding:0;vertical-align:middle;"><img src="${I.pbqp}" alt="PBQP-H" width="40" height="30" style="display:block;border:0;width:40px;height:30px;"></td>
     </tr></table>` : '';
   const socialBlock = v.social ? `<tr><td style="padding:${gap} 0 0;">
     <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
-      <td bgcolor="#050c42" width="48" height="18" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.instagram.com/superengeconstrutora/" target="_blank" rel="noopener" style="${lk}width:48px;">Instagram</a>
+      <td bgcolor="#050c42" width="52" height="22" style="text-align:center;vertical-align:middle;padding:0;">
+        <a href="https://www.instagram.com/superengeconstrutora/" target="_blank" rel="noopener" style="${lk}width:52px;">Instagram</a>
       </td>
-      <td width="4" style="padding:0;">&nbsp;</td>
-      <td bgcolor="#1735c4" width="36" height="18" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.linkedin.com/company/superenge/" target="_blank" rel="noopener" style="${lk}width:36px;">LinkedIn</a>
+      <td width="5" style="padding:0;">&nbsp;</td>
+      <td bgcolor="#1735c4" width="40" height="22" style="text-align:center;vertical-align:middle;padding:0;">
+        <a href="https://www.linkedin.com/company/superenge/" target="_blank" rel="noopener" style="${lk}width:40px;">LinkedIn</a>
       </td>
-      <td width="4" style="padding:0;">&nbsp;</td>
-      <td bgcolor="#4ba047" width="36" height="18" style="text-align:center;vertical-align:middle;padding:0;">
-        <a href="https://www.youtube.com/@SuperengeConstrutora" target="_blank" rel="noopener" style="${lk}width:36px;">YouTube</a>
+      <td width="5" style="padding:0;">&nbsp;</td>
+      <td bgcolor="#4ba047" width="40" height="22" style="text-align:center;vertical-align:middle;padding:0;">
+        <a href="https://www.youtube.com/@SuperengeConstrutora" target="_blank" rel="noopener" style="${lk}width:40px;">YouTube</a>
       </td>
     </tr></table>
   </td></tr>` : '';
-  const sloganBlock = v.slogan ? `<tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:10.5px;color:#4ba047;font-style:italic;font-weight:600;letter-spacing:.12px;line-height:1.25;">Construímos confiança, entregamos qualidade.</span></td></tr>` : '';
-  return `<table class="superenge-sig" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Source Sans Pro',Arial,sans-serif;max-width:700px;width:100%;">
+  const sloganBlock = v.slogan ? `<tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:14.5px;color:#4ba047;font-style:italic;font-weight:600;letter-spacing:.12px;line-height:1.32;">Construímos confiança, entregamos qualidade.</span></td></tr>` : '';
+  return `<table class="superenge-sig" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Source Sans Pro',Arial,sans-serif;max-width:900px;width:100%;">
 <tr>
-  <td width="160" style="width:160px;vertical-align:middle;padding:0 10px 0 0;border-right:2px solid #e0ecf8;text-align:center;">
+  <td width="190" style="width:190px;vertical-align:middle;padding:0 12px 0 0;border-right:2px solid #e0ecf8;text-align:center;">
     <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
-      <img src="${A.logo}" alt="Superenge" width="130" height="80" style="display:block;border:0;width:130px;height:80px;margin:0 auto;">
+      <img src="${I.logo}" alt="Superenge" width="158" height="98" style="display:block;border:0;width:158px;height:98px;margin:0 auto;">
     </a>
     ${sealsBelowLogo}
   </td>
-  <td style="vertical-align:middle;padding:0 0 0 18px;">
+  <td style="vertical-align:middle;padding:0 0 0 22px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-      <tr><td><strong style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:15px;color:#050c42;font-weight:700;letter-spacing:.07em;line-height:1.1;">${nm}</strong></td></tr>
-      <tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:10px;color:#1735c4;font-weight:700;letter-spacing:.07em;line-height:1.2;">${cr}</span></td></tr>
-      <tr><td style="padding:${gap} 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:11px;color:#374350;line-height:1.55;">
+      <tr><td><strong style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:21px;color:#050c42;font-weight:700;letter-spacing:.055em;line-height:1.12;">${nm}</strong></td></tr>
+      <tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:14px;color:#1735c4;font-weight:700;letter-spacing:.055em;line-height:1.22;">${cr}</span></td></tr>
+      <tr><td style="padding:${gap} 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:15px;color:#374350;line-height:1.55;">
         ${phones(v)}
       </td></tr>
-      <tr><td style="padding:${gap} 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:11px;color:#374350;line-height:1.55;">
+      <tr><td style="padding:${gap} 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:15px;color:#374350;line-height:1.55;">
         <a href="mailto:${v.email}" style="color:#050c42;text-decoration:none;">${v.email}</a>
         <span style="color:#b8c5d0;padding:0 5px;">·</span>
         <a href="https://${host}" style="color:#4a5e72;text-decoration:underline;">${host}</a>
@@ -587,9 +543,18 @@ function buildPremiumV2(v) {
 }
 
 function buildSig() {
-  const v = V();
-  const variant = document.getElementById('variant')?.value || 'v1';
-  return variant === 'v2' ? buildPremiumV2(v) : buildPremium(v);
+  return buildSignature(V());
+}
+
+function wrapPreviewBrandColumn() {
+  const td =
+    document.querySelector('#preview .superenge-sig > tbody > tr:first-child > td:first-child') ||
+    document.querySelector('#preview .superenge-sig > tr:first-child > td:first-child');
+  if (!td || td.querySelector(':scope > .sig-brand-curtain')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'sig-brand-curtain';
+  while (td.firstChild) wrap.appendChild(td.firstChild);
+  td.appendChild(wrap);
 }
 
 function applySigPreviewScale() {
@@ -601,9 +566,17 @@ function applySigPreviewScale() {
   const avail = Math.max(100, vp.clientWidth);
   const natural = table.offsetWidth || 1;
   const s = Math.min(1, avail / natural);
-  sc.style.transform = s < 0.998 ? 'scale(' + s + ')' : 'none';
-  const h = table.offsetHeight * s;
-  vp.style.height = h > 0 ? h + 'px' : '';
+  if (s < 0.998) {
+    sc.style.transform = 'scale(' + s + ')';
+    sc.style.transformOrigin = 'top center';
+    /* scale() não encolhe o box no layout; sem isso o overflow corta o rodapé (slogan) */
+    const th = table.offsetHeight;
+    sc.style.marginBottom = ((1 - s) * -th) + 'px';
+  } else {
+    sc.style.transform = 'none';
+    sc.style.marginBottom = '';
+  }
+  vp.style.height = '';
 }
 
 let sigScaleObserver = null;
@@ -622,6 +595,7 @@ function render() {
   const preview = document.getElementById('preview');
   preview.innerHTML =
     '<div class="sig-preview-viewport"><div class="sig-preview-scaler">' + buildSig() + '</div></div>';
+  wrapPreviewBrandColumn();
   requestAnimationFrame(function () {
     applySigPreviewScale();
     requestAnimationFrame(applySigPreviewScale);
@@ -637,7 +611,7 @@ function toast(msg) {
 }
 
 function copyAndPaste() {
-  const html = buildSig();
+  const html = buildSignature(V(), { forEmail: true });
   // ClipboardItem copia HTML limpo sem ruído do DOM — evita duplicação no Gmail
   if (window.ClipboardItem) {
     navigator.clipboard.write([
@@ -654,7 +628,7 @@ function copyAndPaste() {
 }
 
 function copyHTML() {
-  const html = buildSig();
+  const html = buildSignature(V(), { forEmail: true });
   navigator.clipboard.writeText(html)
     .then(() => toast('✓ HTML copiado para a área de transferência.'))
     .catch(() => {
@@ -682,6 +656,145 @@ function _copyFallback(html) {
   s.removeAllRanges();
   document.body.removeChild(tmp);
   toast('✓ Assinatura copiada! Cole no Gmail ou Outlook.');
+}
+
+function _parseTimeMs(cssVal) {
+  if (!cssVal || cssVal === 'auto') return 5000;
+  const v = String(cssVal).trim();
+  if (v.endsWith('ms')) return parseFloat(v) || 5000;
+  if (v.endsWith('s')) return (parseFloat(v) || 5) * 1000;
+  const n = parseFloat(v);
+  return isNaN(n) ? 5000 : n * 1000;
+}
+
+function _normalizeFrameCanvas(src, w, h) {
+  if (src.width === w && src.height === h) return src;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const cx = c.getContext('2d');
+  cx.clearRect(0, 0, w, h);
+  cx.drawImage(src, 0, 0, w, h);
+  return c;
+}
+
+function getPreviewBrandMotionEls() {
+  const wrap = document.querySelector('#preview .sig-brand-curtain');
+  return wrap ? [wrap] : [];
+}
+
+async function exportPreviewGif() {
+  const target = document.querySelector('#preview .sig-preview-viewport');
+  const scaler = document.querySelector('#preview .sig-preview-scaler');
+  const brandEls = getPreviewBrandMotionEls();
+  const btn = document.getElementById('btnExportGif');
+  if (!target || !scaler || brandEls.length === 0) {
+    toast('Pré-visualize a assinatura antes de exportar o GIF.');
+    return;
+  }
+  if (btn) btn.disabled = true;
+  toast('Gerando GIF… pode levar alguns segundos');
+
+  const save = {
+    transform: scaler.style.transform,
+  };
+
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const html2canvasMod = await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js');
+    const html2canvas = html2canvasMod.default || html2canvasMod;
+    const ge = await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js');
+    const GIFEncoder = ge.GIFEncoder || ge.default;
+    const quantize = ge.quantize;
+    const applyPalette = ge.applyPalette;
+    if (typeof GIFEncoder !== 'function' || typeof quantize !== 'function' || typeof applyPalette !== 'function') {
+      throw new Error('Bibliotecas GIF não carregaram');
+    }
+
+    const cs = getComputedStyle(brandEls[0]);
+    const durationMs = Math.max(400, _parseTimeMs(cs.animationDuration));
+    const numFrames = 40;
+    const exportScale = Math.min(3.25, Math.max(2.75, window.devicePixelRatio || 2.75));
+    /* gifenc: delay em ms (internamente /10 → centésimos no arquivo GIF) */
+    const delayMs = Math.max(20, Math.round(durationMs / Math.max(1, numFrames - 1)));
+
+    scaler.style.transform = 'none';
+    scaler.style.marginBottom = '';
+    brandEls.forEach(function (el) {
+      el.style.animationPlayState = 'paused';
+    });
+    void scaler.offsetHeight;
+
+    const gif = GIFEncoder();
+    let cw = 0;
+    let ch = 0;
+    const qOpts = { format: 'rgba4444', oneBitAlpha: true };
+    for (let i = 0; i < numFrames; i++) {
+      const t = numFrames <= 1 ? 1 : i / (numFrames - 1);
+      const delayStr = (-t * durationMs).toFixed(2) + 'ms';
+      brandEls.forEach(function (el) {
+        el.style.animationDelay = delayStr;
+      });
+      void brandEls[0].offsetHeight;
+      await new Promise(function (resolve) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolve); });
+      });
+      let canvas = await html2canvas(target, {
+        backgroundColor: null,
+        scale: exportScale,
+        logging: false,
+        useCORS: true,
+        allowTaint: false,
+      });
+      if (!cw) {
+        cw = canvas.width;
+        ch = canvas.height;
+      } else {
+        canvas = _normalizeFrameCanvas(canvas, cw, ch);
+      }
+      const ctx = canvas.getContext('2d');
+      const im = ctx.getImageData(0, 0, cw, ch);
+      const palette = quantize(im.data, 256, qOpts);
+      const index = applyPalette(im.data, palette, 'rgba4444');
+      let transparentIdx = -1;
+      for (let pi = 0; pi < palette.length; pi++) {
+        if (palette[pi].length > 3 && palette[pi][3] === 0) {
+          transparentIdx = pi;
+          break;
+        }
+      }
+      const frameOpts = { palette: palette, delay: delayMs };
+      if (transparentIdx >= 0) {
+        frameOpts.transparent = true;
+        frameOpts.transparentIndex = transparentIdx;
+      }
+      gif.writeFrame(index, cw, ch, frameOpts);
+    }
+    gif.finish();
+    const bytes = gif.bytes();
+    const blob = new Blob([bytes], { type: 'image/gif' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'superenge-assinatura-animada.gif';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('✓ GIF baixado. Insira no e-mail como imagem.');
+  } catch (err) {
+    console.error(err);
+    toast('Falha ao gerar o GIF: ' + (err && err.message ? err.message : 'rede ou bloqueio de script.'));
+  } finally {
+    scaler.style.transform = save.transform;
+    brandEls.forEach(function (el) {
+      el.style.animationPlayState = '';
+      el.style.animationDelay = '';
+    });
+    render();
+    if (btn) btn.disabled = false;
+  }
 }
 
 document.querySelectorAll('input,select').forEach(function (el) {
