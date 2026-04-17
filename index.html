@@ -429,7 +429,7 @@ body{
         Baixar GIF animado
       </button>
     </div>
-    <p class="preview-email-hint" role="note">As imagens da assinatura colada vêm do <strong>GitHub (CDN jsDelivr)</strong>, não do site da empresa: faça <code>git push</code> da pasta <code>assinatura-email/</code> no repositório público. Pré-visualização em arquivo local continua com imagens embutidas. Animação CSS não vai no HTML; use o GIF se quiser movimento.</p>
+    <p class="preview-email-hint" role="note"><strong>Imagens no Gmail:</strong> com repositório <strong>público</strong> no GitHub, basta <code>git push</code> da pasta <code>assinatura-email/</code> (CDN jsDelivr). Se o GitHub for <strong>privado</strong>, use hospedagem gratuita dos3 PNG (ex.: ImgBB) e preencha <code>SIG_EMAIL_IMAGE_URLS</code> no código. Pré-visualização em ficheiro local usa imagens embutidas. Animação CSS não vai no HTML colado.</p>
 
   </section>
 </main>
@@ -451,7 +451,12 @@ const A = {
  * por links de Imgur, Cloudinary, etc.
  */
 var SIG_EMAIL_IMAGE_BASE = 'https://cdn.jsdelivr.net/gh/marianamarques01/superenge@main/assinatura-email/';
+/** Repositório GitHub privado? jsDelivr não funciona. Suba os 3 PNG em ImgBB (ou similar) e preencha as URLs aqui — ou crie um repo público só com assinatura-email/. */
+var SIG_EMAIL_IMAGE_URLS = null;
 function getSigImageUrlsForEmail() {
+  if (SIG_EMAIL_IMAGE_URLS && SIG_EMAIL_IMAGE_URLS.logo && SIG_EMAIL_IMAGE_URLS.iso && SIG_EMAIL_IMAGE_URLS.pbqp) {
+    return SIG_EMAIL_IMAGE_URLS;
+  }
   return {
     logo: SIG_EMAIL_IMAGE_BASE + 'logo-marca.png',
     iso: SIG_EMAIL_IMAGE_BASE + 'selo-iso-9001.png',
