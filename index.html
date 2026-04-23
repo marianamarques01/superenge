@@ -142,6 +142,129 @@ body{
 .tog input:checked + .sl{background:var(--green);}
 .tog input:checked + .sl::before{transform:translateX(15px);}
 
+/* Layout picker (assinatura) */
+.layout-field{
+  margin:14px 0 0;
+  padding-top:14px;
+  border-top:1px solid rgba(216,228,238,.65);
+}
+.layout-field-label{
+  display:block;
+  font-size:10.5px;font-weight:600;
+  color:var(--mid);text-transform:uppercase;letter-spacing:.03em;
+  margin-bottom:8px;
+}
+.layout-grid{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.layout-card{
+  position:relative;
+  display:block;
+  margin:0;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.layout-card input{
+  position:absolute;
+  left:14px;
+  top:16px;
+  width:1px;
+  height:1px;
+  margin:0;
+  padding:0;
+  opacity:0;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+  border:0;
+}
+.layout-card-inner{
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  padding:11px 12px 11px 11px;
+  border-radius:10px;
+  border:1.5px solid #d4e0ec;
+  background:#f6f9fd;
+  transition:border-color var(--tr),background var(--tr),box-shadow var(--tr),transform var(--tr);
+}
+.layout-card:hover .layout-card-inner{
+  border-color:#b8c8dc;
+  background:var(--white);
+}
+.layout-card input:focus-visible + .layout-card-inner{
+  outline:none;
+  border-color:var(--cobalt);
+  box-shadow:0 0 0 3px rgba(23,53,196,.14);
+}
+.layout-card input:checked + .layout-card-inner{
+  border-color:var(--cobalt);
+  background:linear-gradient(145deg,#fff 0%,#f4f7ff 100%);
+  box-shadow:0 2px 10px rgba(12,29,142,.09),0 0 0 1px rgba(23,53,196,.12);
+}
+.layout-card-badge{
+  flex-shrink:0;
+  width:28px;height:28px;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Outfit',system-ui,sans-serif;
+  font-size:13px;font-weight:700;
+  color:var(--royal);
+  background:rgba(23,53,196,.08);
+  border:1px solid rgba(23,53,196,.12);
+  line-height:1;
+}
+.layout-card input:checked + .layout-card-inner .layout-card-badge{
+  background:linear-gradient(135deg,var(--royal) 0%,var(--cobalt) 100%);
+  color:var(--white);
+  border-color:transparent;
+  box-shadow:0 2px 6px rgba(12,29,142,.22);
+}
+.layout-card-text{min-width:0;flex:1;}
+.layout-card-title{
+  display:block;
+  font-family:'Outfit',system-ui,sans-serif;
+  font-size:12.5px;font-weight:700;
+  color:var(--navy);
+  letter-spacing:-.01em;
+  line-height:1.25;
+  margin-bottom:3px;
+}
+.layout-card-desc{
+  display:block;
+  font-size:11.5px;line-height:1.4;
+  color:var(--mid);
+}
+.layout-card-pick{
+  flex-shrink:0;
+  margin-top:2px;
+  width:18px;height:18px;
+  border-radius:50%;
+  border:2px solid #c4d0dc;
+  background:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color var(--tr),background var(--tr);
+}
+.layout-card-pick::after{
+  content:'';
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--green);
+  opacity:0;
+  transform:scale(0);
+  transition:opacity var(--tr),transform var(--tr);
+}
+.layout-card input:checked + .layout-card-inner .layout-card-pick{
+  border-color:var(--green);
+}
+.layout-card input:checked + .layout-card-inner .layout-card-pick::after{
+  opacity:1;
+  transform:scale(1);
+}
+
 /* ─── CANVAS ─────────────────────────────────────────────────── */
 .canvas{display:flex;flex-direction:column;gap:16px;min-width:0;}
 .canvas-top{
@@ -179,6 +302,8 @@ body{
   display:flex;
   justify-content:center;
   background:transparent;
+  /* ~8s de ciclo ≈ 2,2s de abertura (0%→28%) — ver EXPORT_OPEN_S no exportPreviewGif */
+  --sig-curtain-cycle: 8s;
 }
 .sig-preview-scaler{
   display:inline-block;
@@ -186,6 +311,32 @@ body{
   transform-origin:top center;
   line-height:normal;
   flex-shrink:0;
+}
+/* Preview: mesma lógica da cortina antiga (“janela” cresce; logo não fica esmagada) — via clip-path, não max-width. */
+#preview .sig-brand-curtain{
+  display:block;
+  overflow:hidden;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+#preview .sig-brand-curtain-inner{
+  display:inline-block;
+  vertical-align:top;
+  will-change:clip-path;
+  backface-visibility:hidden;
+  -webkit-clip-path:inset(0 100% 0 0);
+  clip-path:inset(0 100% 0 0);
+  animation:brandPreviewMotion var(--sig-curtain-cycle, 8s) cubic-bezier(.72,.02,.28,.98) infinite;
+}
+#preview .superenge-sig > tbody > tr:first-child > td:first-child,
+#preview .superenge-sig > tr:first-child > td:first-child{
+  overflow:visible;
+  vertical-align:middle;
+}
+#preview .sig-brand-curtain-inner > table[role="presentation"]{
+  display:inline-block;
+  vertical-align:middle;
 }
 /* Refinos visuais só no preview (HTML copiado permanece inalterado) */
 #preview .superenge-sig{
@@ -208,9 +359,44 @@ body{
 }
 #preview .superenge-sig > tbody > tr:first-child > td:first-child img[alt="Superenge"],
 #preview .superenge-sig > tr:first-child > td:first-child img[alt="Superenge"]{
-  width:100%;
+  width:158px;
   max-width:158px;
-  height:auto;
+  height:98px;
+  object-fit:contain;
+}
+
+/* Abre: recorte 100% → 0% pela direita (efeito = max-width 0 → 100% com overflow hidden). */
+@keyframes brandPreviewMotion{
+  0%,100%{
+    opacity:1;
+    -webkit-clip-path:inset(0 100% 0 0);
+    clip-path:inset(0 100% 0 0);
+  }
+  28%,72%{
+    opacity:1;
+    -webkit-clip-path:inset(0 0% 0 0);
+    clip-path:inset(0 0% 0 0);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #preview .sig-brand-curtain-inner{
+    animation:fadeIn .35s ease both;
+    -webkit-clip-path:none;
+    clip-path:none;
+    will-change:auto;
+  }
+  #preview .sig-brand-curtain{
+    filter:none;
+  }
+}
+@keyframes fadeIn{
+  from { opacity:0; }
+  to   { opacity:1; }
+}
+/* Hover: só com ponteiro fino (evita custo no touch) */
+@media (hover:hover) and (pointer:fine){
+  #preview a img { transition:transform .2s ease, opacity .2s ease; }
+  #preview a:hover img { transform:scale(1.03); opacity:.9; }
 }
 
 /* ─── ACTIONS ────────────────────────────────────────────────── */
@@ -337,9 +523,9 @@ body{
         Dados do colaborador
       </div>
       <div class="field"><label>Nome completo</label><input type="text" id="nome" value="LAÍSA ASSIS" placeholder="Ex: João Silva"></div>
-      <div class="field"><label>Cargo</label><input type="text" id="cargo" value="Diretora de Estratégia" placeholder="Ex: Engenheiro Civil"></div>
-      <div class="field"><label>Celular</label><input type="text" id="celular" value="31 99405 6207"></div>
-      <div class="field"><label>Telefone fixo</label><input type="text" id="fixo" value="31 3466 5371"></div>
+      <div class="field"><label>Cargo</label><input type="text" id="cargo" value="Diretora Executiva" placeholder="Ex: Engenheiro Civil"></div>
+      <div class="field"><label>Celular</label><input type="text" id="celular" value="31 99405-6207"></div>
+      <div class="field"><label>Telefone fixo</label><input type="text" id="fixo" value="31 3466-0434"></div>
       <div class="field"><label>E-mail</label><input type="email" id="email" value="laisa@superenge.com.br"></div>
       <div class="field"><label>Website</label><input type="text" id="website" value="www.superenge.com.br"></div>
     </div>
@@ -354,6 +540,44 @@ body{
         <div class="trow"><span>Exibir slogan</span><label class="tog"><input type="checkbox" id="showSlogan" checked><span class="sl"></span></label></div>
         <div class="trow"><span>Selos ISO / PBQP-H</span><label class="tog"><input type="checkbox" id="showSeals" checked><span class="sl"></span></label></div>
         <div class="trow"><span>Telefone fixo</span><label class="tog"><input type="checkbox" id="showFixo" checked><span class="sl"></span></label></div>
+        <div class="layout-field">
+          <span class="layout-field-label" id="layout-label">Layout da assinatura</span>
+          <div class="layout-grid" role="radiogroup" aria-labelledby="layout-label">
+            <label class="layout-card">
+              <input type="radio" name="sigVersion" value="1" checked>
+              <span class="layout-card-inner">
+                <span class="layout-card-badge" aria-hidden="true">1</span>
+                <span class="layout-card-text">
+                  <span class="layout-card-title">Referência</span>
+                  <span class="layout-card-desc">Espaçamentos clássicos; cargo em azul médio e slogan em verde.</span>
+                </span>
+                <span class="layout-card-pick" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="layout-card">
+              <input type="radio" name="sigVersion" value="2">
+              <span class="layout-card-inner">
+                <span class="layout-card-badge" aria-hidden="true">2</span>
+                <span class="layout-card-text">
+                  <span class="layout-card-title">Espaçamento uniforme</span>
+                  <span class="layout-card-desc">Mesmo recuo vertical (8px) entre todas as linhas.</span>
+                </span>
+                <span class="layout-card-pick" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="layout-card">
+              <input type="radio" name="sigVersion" value="3">
+              <span class="layout-card-inner">
+                <span class="layout-card-badge" aria-hidden="true">3</span>
+                <span class="layout-card-text">
+                  <span class="layout-card-title">Editorial</span>
+                  <span class="layout-card-desc">Tudo em azul marinho, tipografia e slogan refinados.</span>
+                </span>
+                <span class="layout-card-pick" aria-hidden="true"></span>
+              </span>
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   </aside>
@@ -379,9 +603,11 @@ body{
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="9" height="12" rx="1.5"/><path d="M5 1h7.5A1.5 1.5 0 0114 2.5V13"/></svg>
         Copiar HTML
       </button>
+      <button class="btn btn-o" type="button" id="btnExportGif" onclick="exportPreviewGif()">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm11 0H3v7h10V3zM5 13.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5z"/></svg>
+        Baixar GIF animado
+      </button>
     </div>
-    <p class="preview-email-hint" role="note"><strong>Imagens no Gmail:</strong> com repositório <strong>público</strong> no GitHub, faça <code>git push</code> da pasta <code>assinatura-email/</code> (URLs via <code>raw.githubusercontent.com</code>). Se o GitHub for <strong>privado</strong>, use links públicos aos 3 PNG (ex.: ImgBB) e preencha <code>SIG_EMAIL_IMAGE_URLS</code>. Em ficheiro local a pré-visualização usa imagens embutidas.</p>
-
   </section>
 </main>
 
@@ -418,6 +644,11 @@ function getSigImagesForPreview() {
   return getSigImageUrlsForEmail();
 }
 
+function getSigVersion() {
+  const r = document.querySelector('input[name="sigVersion"]:checked');
+  return r ? r.value : '1';
+}
+
 function V() {
   return {
     nome:   document.getElementById('nome').value.trim(),
@@ -429,66 +660,100 @@ function V() {
     slogan: document.getElementById('showSlogan').checked,
     seals:  document.getElementById('showSeals').checked,
     showFixo: document.getElementById('showFixo').checked,
+    version: getSigVersion(),
   };
 }
 
 function phones(v) {
-  const sep = '<span style="color:#b8c5d0;padding:0 5px;">|</span>';
-  let p = [`<a href="tel:+55${v.cel.replace(/\s/g,'')}" style="color:#2d3a44;text-decoration:none;white-space:nowrap;">${v.cel}</a>`];
-  if (v.showFixo && v.fixo) p.push(`<a href="tel:+55${v.fixo.replace(/\s/g,'')}" style="color:#2d3a44;text-decoration:none;white-space:nowrap;">${v.fixo}</a>`);
+  const sep = '<span style="color:#003399;padding:0 5px;">|</span>';
+  const link = (t) => `<a href="tel:+55${t.replace(/[\s-]/g,'')}" style="font-family:Arial,Helvetica,sans-serif;color:#003399;text-decoration:none;white-space:nowrap;">${t}</a>`;
+  let p = [link(v.cel)];
+  if (v.showFixo && v.fixo) p.push(link(v.fixo));
   return p.join(sep);
 }
 
 /** Texto simples para colar em campos só-plain e para a área de transferência junto do HTML. */
 function buildSignaturePlain(v) {
+  if (String(v.version || '1') === '3') {
+    const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
+    const lines = [];
+    if (v.nome) lines.push(v.nome.toLocaleUpperCase('pt-BR'));
+    if (v.cargo) lines.push(v.cargo.toLocaleUpperCase('pt-BR'));
+    if (v.email) lines.push(v.email);
+    const tel = [];
+    if (v.cel) tel.push(v.cel);
+    if (v.showFixo && v.fixo) tel.push(v.fixo);
+    if (tel.length) lines.push(tel.join(' | '));
+    if (host) lines.push(host);
+    if (v.slogan) lines.push(SIG_SLOGAN_V3);
+    return lines.join('\n');
+  }
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
   const lines = [];
   if (v.nome) lines.push(v.nome);
   if (v.cargo) lines.push(v.cargo);
+  if (v.email) lines.push(v.email);
   const tel = [];
   if (v.cel) tel.push(v.cel);
   if (v.showFixo && v.fixo) tel.push(v.fixo);
   if (tel.length) lines.push(tel.join(' | '));
-  const bits = [];
-  if (v.email) bits.push(v.email);
-  if (host) bits.push(host);
-  if (bits.length) lines.push(bits.join(' · '));
-  if (v.slogan) lines.push('Construímos confiança, entregamos qualidade.');
+  if (host) lines.push(host);
+  if (v.slogan) lines.push('CONSTRUÍMOS CONFIANÇA, ENTREGAMOS QUALIDADE');
   return lines.join('\n');
 }
 
-// ── Assinatura (layout com espaçamento uniforme entre blocos) ───
-function buildSignature(v, opts) {
-  const forEmail = opts && opts.forEmail;
-  const I = forEmail ? getSigImageUrlsForEmail() : getSigImagesForPreview();
+const SIG_FF = "Arial,Helvetica,sans-serif";
+/** Slogan do layout v3 — tom editorial (diferente de v1/v2). */
+const SIG_SLOGAN_V3 = 'Método na execução · Confiança no resultado';
+
+function sloganRowV3(padTop, color, ff) {
+  return `<tr><td style="padding:${padTop} 0 0;"><span style="font-family:${ff};font-size:12px;color:${color};font-weight:500;letter-spacing:.11em;line-height:1.5;text-transform:uppercase;opacity:.95;">${SIG_SLOGAN_V3}</span></td></tr>`;
+}
+
+const SIG_NAVY = "#003399";
+const SIG_MID_BLUE = "#4a5fa1";
+const SIG_GREEN = "#4d924d";
+
+function sealsBlock(v, I, sealsTop) {
+  if (!v.seals) return '';
+  const m = sealsTop != null ? sealsTop : '6px';
+  return `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:${m} auto 0;"><tr>
+      <td style="padding:0 5px 0 0;vertical-align:middle;"><img src="${I.iso}" alt="ISO 9001" width="46" height="32" style="display:block;border:0;width:46px;height:32px;margin-left:-5px;"></td>
+      <td style="padding:0;vertical-align:middle;"><img src="${I.pbqp}" alt="PBQP-H" width="40" height="30" style="display:block;border:0;width:40px;height:30px;"></td>
+    </tr></table>`;
+}
+
+function sloganRowHtml(padTop) {
+  return `<tr><td style="padding:${padTop} 0 0;"><span style="font-family:${SIG_FF};font-size:13px;color:${SIG_GREEN};font-weight:400;letter-spacing:.06em;line-height:1.32;text-transform:uppercase;">CONSTRUÍMOS CONFIANÇA, ENTREGAMOS QUALIDADE</span></td></tr>`;
+}
+
+/** Versão 1 — referência: gaps assimétricos (4px / 14px). */
+function buildSignatureV1(v, I) {
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const gap = '8px';
-  const sealsBelowLogo = v.seals ? `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:6px auto 0;"><tr>
-      <td style="padding:0 5px 0 0;vertical-align:middle;"><img src="${I.iso}" alt="ISO 9001" width="46" height="32" style="display:block;border:0;width:46px;height:32px;margin-left:-5px;"></td>
-      <td style="padding:0;vertical-align:middle;"><img src="${I.pbqp}" alt="PBQP-H" width="40" height="30" style="display:block;border:0;width:40px;height:30px;"></td>
-    </tr></table>` : '';
-  const sloganBlock = v.slogan ? `<tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:14.5px;color:#4ba047;font-style:italic;font-weight:600;letter-spacing:.12px;line-height:1.32;">Construímos confiança, entregamos qualidade.</span></td></tr>` : '';
-  return `<table class="superenge-sig" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Source Sans Pro',Arial,sans-serif;max-width:900px;width:100%;">
+  const g1 = '4px';
+  const g2 = '14px';
+  const sBelow = sealsBlock(v, I, '6px');
+  const sloganBlock = v.slogan ? sloganRowHtml(g2) : '';
+  return `<table class="superenge-sig superenge-sig--v1" data-sig-version="1" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${SIG_FF};max-width:900px;width:100%;">
 <tr>
-  <td width="190" style="width:190px;vertical-align:middle;padding:0 12px 0 0;border-right:2px solid #e0ecf8;text-align:center;">
+  <td width="190" style="width:190px;vertical-align:middle;padding:0 12px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
     <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
       <img src="${I.logo}" alt="Superenge" width="158" height="98" style="display:block;border:0;width:158px;height:98px;margin:0 auto;">
     </a>
-    ${sealsBelowLogo}
+    ${sBelow}
   </td>
   <td style="vertical-align:middle;padding:0 0 0 22px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-      <tr><td><strong style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:21px;color:#050c42;font-weight:700;letter-spacing:.055em;line-height:1.12;">${nm}</strong></td></tr>
-      <tr><td style="padding:${gap} 0 0;"><span style="font-family:'Source Sans Pro',Arial,sans-serif;font-size:14px;color:#1735c4;font-weight:700;letter-spacing:.055em;line-height:1.22;">${cr}</span></td></tr>
-      <tr><td style="padding:${gap} 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:15px;color:#374350;line-height:1.55;">
-        ${phones(v)}
+      <tr><td><strong style="font-family:${SIG_FF};font-size:20px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
+      <tr><td style="padding:${g1} 0 0;"><span style="font-family:${SIG_FF};font-size:13px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
+      <tr><td style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">
+        <a href="mailto:${v.email}" style="color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
       </td></tr>
-      <tr><td style="padding:${gap} 0 0;font-family:'Source Sans Pro',Arial,sans-serif;font-size:15px;color:#374350;line-height:1.55;">
-        <a href="mailto:${v.email}" style="color:#050c42;text-decoration:none;">${v.email}</a>
-        <span style="color:#b8c5d0;padding:0 5px;">·</span>
-        <a href="https://${host}" style="color:#4a5e72;text-decoration:underline;">${host}</a>
+      <tr><td style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
+      <tr><td style="padding:${g2} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">
+        <a href="https://${host}" style="color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
       </td></tr>
       ${sloganBlock}
     </table>
@@ -497,8 +762,104 @@ function buildSignature(v, opts) {
 </table>`;
 }
 
+/** Versão 2 — mesmo conteúdo que v1, gap vertical único 8px entre todos os blocos. */
+function buildSignatureV2(v, I) {
+  const nm = v.nome.toLocaleUpperCase('pt-BR');
+  const cr = v.cargo.toLocaleUpperCase('pt-BR');
+  const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
+  const g = '8px';
+  const sBelow = sealsBlock(v, I, '8px');
+  const sloganBlock = v.slogan ? sloganRowHtml(g) : '';
+  return `<table class="superenge-sig superenge-sig--v2" data-sig-version="2" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${SIG_FF};max-width:900px;width:100%;">
+<tr>
+  <td width="190" style="width:190px;vertical-align:middle;padding:0 12px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
+    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
+      <img src="${I.logo}" alt="Superenge" width="158" height="98" style="display:block;border:0;width:158px;height:98px;margin:0 auto;">
+    </a>
+    ${sBelow}
+  </td>
+  <td style="vertical-align:middle;padding:0 0 0 22px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+      <tr><td><strong style="font-family:${SIG_FF};font-size:20px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
+      <tr><td style="padding:${g} 0 0;"><span style="font-family:${SIG_FF};font-size:13px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">
+        <a href="mailto:${v.email}" style="color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
+      </td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">
+        <a href="https://${host}" style="color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
+      </td></tr>
+      ${sloganBlock}
+    </table>
+  </td>
+</tr>
+</table>`;
+}
+
+/**
+ * Versão 3 — mesma informação que v1/v2, toda em #003399; cargo com peso médio;
+ * slogan próprio (SIG_SLOGAN_V3), tipografia mais editorial.
+ */
+function buildSignatureV3(v, I) {
+  const c = SIG_NAVY;
+  const ff = SIG_FF;
+  const g = '8px';
+  const nm = v.nome.toLocaleUpperCase('pt-BR');
+  const cr = v.cargo.toLocaleUpperCase('pt-BR');
+  const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
+  const sBelow = sealsBlock(v, I, '8px');
+  const sloganBlock = v.slogan ? sloganRowV3(g, c, ff) : '';
+  return `<table class="superenge-sig superenge-sig--v3" data-sig-version="3" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${ff};max-width:900px;width:100%;">
+<tr>
+  <td width="190" style="width:190px;vertical-align:middle;padding:0 12px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
+    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
+      <img src="${I.logo}" alt="Superenge" width="158" height="98" style="display:block;border:0;width:158px;height:98px;margin:0 auto;">
+    </a>
+    ${sBelow}
+  </td>
+  <td style="vertical-align:middle;padding:0 0 0 22px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+      <tr><td><strong style="font-family:${ff};font-size:20px;color:${c};font-weight:700;letter-spacing:.05em;line-height:1.1;text-transform:uppercase;">${nm}</strong></td></tr>
+      <tr><td style="padding:${g} 0 0;"><span style="font-family:${ff};font-size:13px;color:${c};font-weight:600;letter-spacing:.16em;line-height:1.25;text-transform:uppercase;">${cr}</span></td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:14px;color:${c};line-height:1.55;">
+        <a href="mailto:${v.email}" style="color:${c};text-decoration:none;">${v.email}</a>
+      </td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:14px;color:${c};line-height:1.55;">${phones(v)}</td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:14px;color:${c};line-height:1.55;">
+        <a href="https://${host}" style="color:${c};text-decoration:none;font-weight:400;">${host}</a>
+      </td></tr>
+      ${sloganBlock}
+    </table>
+  </td>
+</tr>
+</table>`;
+}
+
+function buildSignature(v, opts) {
+  const forEmail = opts && opts.forEmail;
+  const I = forEmail ? getSigImageUrlsForEmail() : getSigImagesForPreview();
+  const ver = String(v.version || '1');
+  if (ver === '3') return buildSignatureV3(v, I);
+  if (ver === '2') return buildSignatureV2(v, I);
+  return buildSignatureV1(v, I);
+}
+
 function buildSig() {
   return buildSignature(V());
+}
+
+function wrapPreviewBrandColumn() {
+  const td =
+    document.querySelector('#preview .superenge-sig > tbody > tr:first-child > td:first-child') ||
+    document.querySelector('#preview .superenge-sig > tr:first-child > td:first-child');
+  if (!td || td.querySelector(':scope > .sig-brand-curtain')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'sig-brand-curtain';
+  const inner = document.createElement('div');
+  inner.className = 'sig-brand-curtain-inner';
+  while (td.firstChild) inner.appendChild(td.firstChild);
+  wrap.appendChild(inner);
+  td.appendChild(wrap);
 }
 
 function applySigPreviewScale() {
@@ -535,15 +896,25 @@ function initSigPreviewScale() {
   window.addEventListener('resize', applySigPreviewScale, { passive: true });
 }
 
-function render() {
+let renderDebounce = null;
+function performRender() {
   const preview = document.getElementById('preview');
   preview.innerHTML =
     '<div class="sig-preview-viewport"><div class="sig-preview-scaler">' + buildSig() + '</div></div>';
+  wrapPreviewBrandColumn();
   requestAnimationFrame(function () {
     applySigPreviewScale();
     requestAnimationFrame(applySigPreviewScale);
   });
   setTimeout(applySigPreviewScale, 480);
+}
+/** Debounce: evita innerHTML+reparse da assinatura a cada tecla (barato para texto, caro com imagens+animação). */
+function render() {
+  if (renderDebounce) clearTimeout(renderDebounce);
+  renderDebounce = setTimeout(function () {
+    renderDebounce = null;
+    performRender();
+  }, 100);
 }
 
 function toast(msg) {
@@ -603,13 +974,194 @@ function _copyFallback(html) {
   toast('✓ Assinatura copiada! Cole no Gmail ou Outlook.');
 }
 
+function _parseTimeMs(cssVal) {
+  if (!cssVal || cssVal === 'auto') return 5000;
+  const v = String(cssVal).trim();
+  if (v.endsWith('ms')) return parseFloat(v) || 5000;
+  if (v.endsWith('s')) return (parseFloat(v) || 5) * 1000;
+  const n = parseFloat(v);
+  return isNaN(n) ? 5000 : n * 1000;
+}
+
+function _normalizeFrameCanvas(src, w, h) {
+  if (src.width === w && src.height === h) return src;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const cx = c.getContext('2d');
+  cx.clearRect(0, 0, w, h);
+  cx.drawImage(src, 0, 0, w, h);
+  return c;
+}
+
+/** html2canvas costuma falhar com imagens CDN (CORS/taint); GIF usa sempre data URI do objeto A. */
+function _applyDataUriToPreviewImages(scopeEl) {
+  scopeEl.querySelectorAll('img').forEach(function (img) {
+    var alt = (img.getAttribute('alt') || '').trim();
+    if (alt === 'Superenge') img.src = A.logo;
+    else if (alt === 'ISO 9001') img.src = A.iso;
+    else if (alt === 'PBQP-H') img.src = A.pbqp;
+  });
+}
+function _waitImagesLoaded(scopeEl) {
+  var imgs = scopeEl.querySelectorAll('img');
+  return Promise.all(Array.prototype.map.call(imgs, function (img) {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise(function (resolve) {
+      img.onload = function () { resolve(); };
+      img.onerror = function () { resolve(); };
+    });
+  }));
+}
+
+/**
+ * Largura “lógica” da cortina (0–100), igual à antiga curva em max-width.
+ * Abre rápido (0→15%) e fica estática o resto (15→100%).
+ */
+function _curtainMaxWidth(t) {
+  if (t <= 0) return 0;
+  if (t >= 0.15) return 100;
+  return (t / 0.15) * 100;
+}
+
+async function exportPreviewGif() {
+  const target = document.querySelector('#preview .sig-preview-viewport');
+  const scaler = document.querySelector('#preview .sig-preview-scaler');
+  const curtain = document.querySelector('#preview .sig-brand-curtain');
+  const curtainInner = document.querySelector('#preview .sig-brand-curtain-inner');
+  const btn = document.getElementById('btnExportGif');
+  if (!target || !scaler || !curtain || !curtainInner) {
+    toast('Pré-visualize a assinatura antes de exportar o GIF.');
+    return;
+  }
+  if (btn) btn.disabled = true;
+
+  const save = {
+    transform: scaler.style.transform,
+  };
+
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const html2canvasMod = await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js');
+    const html2canvas = html2canvasMod.default || html2canvasMod;
+    const ge = await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js');
+    const GIFEncoder = ge.GIFEncoder || ge.default;
+    const quantize = ge.quantize;
+    const applyPalette = ge.applyPalette;
+    if (typeof GIFEncoder !== 'function' || typeof quantize !== 'function' || typeof applyPalette !== 'function') {
+      throw new Error('Bibliotecas GIF não carregaram');
+    }
+
+    /**
+     * Abertura: muitas amostras (≈EXPORT_FPS/s) com delay curto = movimento suave.
+     * Só varre t em [0,0,15] em _curtainMaxWidth — evita 20+ frames idênticos no meio.
+     * Preview: --sig-curtain-cycle = EXPORT_OPEN_S / 0,28 (abertura = 0→28% da keyframe).
+     */
+    const EXPORT_OPEN_S = 2.25;
+    const EXPORT_FPS = 30;
+    const HOLD_MS = 5000;
+    const exportScale = 2;
+    const openFrames = Math.max(2, Math.round(EXPORT_OPEN_S * EXPORT_FPS));
+    const frameDelayMs = Math.max(1, Math.round(1000 / EXPORT_FPS));
+    toast('Gerando GIF… ' + openFrames + ' frames (~' + EXPORT_FPS + ' fps), pode demorar');
+
+    scaler.style.transform = 'none';
+    scaler.style.marginBottom = '';
+    /* html2canvas captura mal clip-path: reproduz “aquela” cortina com max-width no wrap (igual lógica antiga). */
+    curtainInner.style.animation = 'none';
+    curtainInner.style.willChange = 'auto';
+    curtainInner.style.clipPath = 'none';
+    curtainInner.style.webkitClipPath = 'none';
+    curtain.style.animation = 'none';
+    curtain.style.maxWidth = '0';
+    void scaler.offsetHeight;
+
+    /* Troca imagens por data URI (base64) para evitar CORS/taint no html2canvas */
+    _applyDataUriToPreviewImages(target);
+    await _waitImagesLoaded(target);
+    void target.offsetHeight;
+
+    const gif = GIFEncoder();
+    let cw = 0;
+    let ch = 0;
+    const qOpts = { format: 'rgba4444', oneBitAlpha: true };
+    for (let i = 0; i < openFrames; i++) {
+      const tNorm = openFrames <= 1 ? 1 : i / (openFrames - 1);
+      const t = tNorm * 0.15;
+      const mw = _curtainMaxWidth(t);
+      curtain.style.maxWidth = mw + '%';
+      void curtain.offsetHeight;
+      await new Promise(function (resolve) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolve); });
+      });
+      let canvas = await html2canvas(target, {
+        backgroundColor: null,
+        scale: exportScale,
+        logging: false,
+        useCORS: false,
+        allowTaint: true,
+        imageTimeout: 20000,
+      });
+      if (!cw) {
+        cw = canvas.width;
+        ch = canvas.height;
+      } else {
+        canvas = _normalizeFrameCanvas(canvas, cw, ch);
+      }
+      const ctx = canvas.getContext('2d');
+      const im = ctx.getImageData(0, 0, cw, ch);
+      const palette = quantize(im.data, 256, qOpts);
+      const index = applyPalette(im.data, palette, 'rgba4444');
+      let transparentIdx = -1;
+      for (let pi = 0; pi < palette.length; pi++) {
+        if (palette[pi].length > 3 && palette[pi][3] === 0) {
+          transparentIdx = pi;
+          break;
+        }
+      }
+      const isLast = (i === openFrames - 1);
+      const frameOpts = { palette: palette, delay: isLast ? HOLD_MS : frameDelayMs };
+      if (transparentIdx >= 0) {
+        frameOpts.transparent = true;
+        frameOpts.transparentIndex = transparentIdx;
+      }
+      gif.writeFrame(index, cw, ch, frameOpts);
+    }
+    gif.finish();
+    const bytes = gif.bytes();
+    const blob = new Blob([bytes], { type: 'image/gif' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'superenge-assinatura-animada.gif';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('✓ GIF baixado. Insira no e-mail como imagem.');
+  } catch (err) {
+    console.error(err);
+    toast('Falha ao gerar o GIF: ' + (err && err.message ? err.message : 'rede ou bloqueio de script.'));
+  } finally {
+    scaler.style.transform = save.transform;
+    curtain.style.animation = '';
+    curtain.style.maxWidth = '';
+    curtainInner.style.animation = '';
+    curtainInner.style.clipPath = '';
+    curtainInner.style.webkitClipPath = '';
+    performRender();
+    if (btn) btn.disabled = false;
+  }
+}
+
 document.querySelectorAll('input,select').forEach(function (el) {
   el.addEventListener('input', render);
   el.addEventListener('change', render);
 });
 
 initSigPreviewScale();
-render();
+performRender();
 </script>
 </body>
 </html>
