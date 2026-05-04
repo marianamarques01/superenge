@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Superenge — Gerador de Assinatura de E-mail</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <meta name="description" content="Gerador de assinatura de e-mail institucional da Superenge Construtora. Crie sua assinatura Premium em segundos.">
 <style>
 :root {
@@ -60,7 +60,7 @@ body{
 .hdr-sep{width:1px;height:36px;background:rgba(255,255,255,.18);flex-shrink:0;}
 .hdr-text{flex:1;min-width:0;}
 .hdr-text h1{
-  font-family:'Outfit',system-ui,sans-serif;
+  font-family:'Source Sans Pro',system-ui,sans-serif;
   font-size:clamp(15px,1.9vw,21px);font-weight:700;color:#fff;
   letter-spacing:-.02em;line-height:1.2;
 }
@@ -92,7 +92,7 @@ body{
   background:linear-gradient(90deg,var(--green) 0%,var(--green) 26%,var(--sky) 26%,var(--sky) 100%);
 }
 .card-title{
-  font-family:'Outfit',system-ui,sans-serif;
+  font-family:'Source Sans Pro',system-ui,sans-serif;
   font-size:10.5px;font-weight:700;text-transform:uppercase;
   letter-spacing:.13em;color:var(--navy);
   margin-bottom:14px;display:flex;align-items:center;gap:7px;
@@ -210,7 +210,7 @@ body{
   width:28px;height:28px;
   border-radius:8px;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Outfit',system-ui,sans-serif;
+  font-family:'Source Sans Pro',system-ui,sans-serif;
   font-size:13px;font-weight:700;
   color:var(--royal);
   background:rgba(23,53,196,.08);
@@ -226,7 +226,7 @@ body{
 .layout-card-text{min-width:0;flex:1;}
 .layout-card-title{
   display:block;
-  font-family:'Outfit',system-ui,sans-serif;
+  font-family:'Source Sans Pro',system-ui,sans-serif;
   font-size:12.5px;font-weight:700;
   color:var(--navy);
   letter-spacing:-.01em;
@@ -273,7 +273,7 @@ body{
   border-radius:var(--r);padding:12px 16px;box-shadow:var(--sh-sm);
 }
 .canvas-top-label{
-  font-family:'Outfit',system-ui,sans-serif;font-size:11px;
+  font-family:'Source Sans Pro',system-ui,sans-serif;font-size:11px;
   font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);
   white-space:nowrap;
 }
@@ -312,9 +312,11 @@ body{
   line-height:normal;
   flex-shrink:0;
 }
-/* Preview: mesma lógica da cortina antiga (“janela” cresce; logo não fica esmagada) — via clip-path, não max-width. */
+/* v4: cortina via overlay com transform (compositor-only / GPU em todos navegadores)
+   Antes: animar `clip-path` causava paint a cada frame em Safari iOS → stuttering em mobile. */
 #preview .sig-brand-curtain{
   display:block;
+  position:relative;
   overflow:hidden;
   width:100%;
   min-width:0;
@@ -323,11 +325,25 @@ body{
 #preview .sig-brand-curtain-inner{
   display:inline-block;
   vertical-align:top;
-  will-change:clip-path;
+}
+#preview .sig-brand-curtain::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:#ffffff;
+  pointer-events:none;
+  z-index:2;
+  transform:translate3d(0,0,0);
+  will-change:transform;
   backface-visibility:hidden;
-  -webkit-clip-path:inset(0 100% 0 0);
-  clip-path:inset(0 100% 0 0);
   animation:brandPreviewMotion var(--sig-curtain-cycle, 8s) cubic-bezier(.72,.02,.28,.98) infinite;
+}
+#preview .sig-brand-curtain.is-static::after{
+  animation:none;
+  transform:translate3d(var(--sig-curtain-pos, 0%), 0, 0);
+}
+#preview.is-offscreen .sig-brand-curtain::after{
+  animation-play-state:paused;
 }
 #preview .superenge-sig > tbody > tr:first-child > td:first-child,
 #preview .superenge-sig > tr:first-child > td:first-child{
@@ -338,17 +354,17 @@ body{
   display:inline-block;
   vertical-align:middle;
 }
-/* Refinos visuais só no preview (HTML copiado permanece inalterado) */
+/* Refinos só no preview — espelhar SIG_LAYOUT.maxW / brandColW / logo (ver script). */
 #preview .superenge-sig{
   display:table;
-  width:900px;
+  width:560px;
   max-width:none;
   table-layout:fixed;
 }
 #preview .superenge-sig>tbody>tr>td:first-child,
 #preview .superenge-sig>tr>td:first-child{
-  width:190px!important;
-  max-width:190px;
+  width:118px!important;
+  max-width:118px;
   box-sizing:border-box;
 }
 #preview .superenge-sig>tbody>tr>td:last-child,
@@ -359,39 +375,27 @@ body{
 }
 #preview .superenge-sig > tbody > tr:first-child > td:first-child img[alt="Superenge"],
 #preview .superenge-sig > tr:first-child > td:first-child img[alt="Superenge"]{
-  width:158px;
-  max-width:158px;
-  height:98px;
+  width:98px;
+  max-width:98px;
+  height:61px;
   object-fit:contain;
 }
 
-/* Abre: recorte 100% → 0% pela direita (efeito = max-width 0 → 100% com overflow hidden). */
+/* Cortina branca cobre o conteúdo em translateX(0%) → desliza para fora em (100%) → volta em (0%).
+   translate3d garante composição em camada própria — paint zero entre frames. */
 @keyframes brandPreviewMotion{
-  0%,100%{
-    opacity:1;
-    -webkit-clip-path:inset(0 100% 0 0);
-    clip-path:inset(0 100% 0 0);
-  }
-  28%,72%{
-    opacity:1;
-    -webkit-clip-path:inset(0 0% 0 0);
-    clip-path:inset(0 0% 0 0);
-  }
+  0%,100%{ transform: translate3d(0%,0,0); }
+  28%,72%{ transform: translate3d(100%,0,0); }
+}
+/* Mobile: ciclo mais lento = menos trabalho de composição/segundo, sem perda perceptual. */
+@media (max-width:640px){
+  #preview .sig-brand-curtain::after{ animation-duration: 10s; }
 }
 @media (prefers-reduced-motion:reduce){
-  #preview .sig-brand-curtain-inner{
-    animation:fadeIn .35s ease both;
-    -webkit-clip-path:none;
-    clip-path:none;
-    will-change:auto;
+  #preview .sig-brand-curtain::after{
+    display:none;
+    animation:none;
   }
-  #preview .sig-brand-curtain{
-    filter:none;
-  }
-}
-@keyframes fadeIn{
-  from { opacity:0; }
-  to   { opacity:1; }
 }
 /* Hover: só com ponteiro fino (evita custo no touch) */
 @media (hover:hover) and (pointer:fine){
@@ -404,7 +408,7 @@ body{
 .btn{
   display:flex;align-items:center;justify-content:center;gap:6px;
   padding:11px 14px;border:none;border-radius:9px;
-  font-family:'Outfit',system-ui,sans-serif;font-size:12px;font-weight:600;
+  font-family:'Source Sans Pro',system-ui,sans-serif;font-size:12px;font-weight:600;
   cursor:pointer;transition:all var(--tr);letter-spacing:.01em;flex:1;
 }
 .btn:active{transform:scale(.97);}
@@ -430,7 +434,7 @@ body{
   transform:translateX(-50%) translateY(60px);
   background:var(--navy);color:var(--white);
   padding:10px 22px;border-radius:8px;
-  font-family:'Outfit',system-ui,sans-serif;font-size:12.5px;font-weight:600;
+  font-family:'Source Sans Pro',system-ui,sans-serif;font-size:12.5px;font-weight:600;
   box-shadow:0 6px 20px rgba(5,12,66,.28);
   transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s;
   opacity:0;pointer-events:none;z-index:999;
@@ -664,15 +668,6 @@ function V() {
   };
 }
 
-function phones(v) {
-  const sep = '<span style="color:#003399;padding:0 5px;">|</span>';
-  const link = (t) => `<a href="tel:+55${t.replace(/[\s-]/g,'')}" style="font-family:Arial,Helvetica,sans-serif;color:#003399;text-decoration:none;white-space:nowrap;">${t}</a>`;
-  let p = [link(v.cel)];
-  if (v.showFixo && v.fixo) p.push(link(v.fixo));
-  return p.join(sep);
-}
-
-/** Texto simples para colar em campos só-plain e para a área de transferência junto do HTML. */
 function buildSignaturePlain(v) {
   if (String(v.version || '1') === '3') {
     const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
@@ -702,58 +697,94 @@ function buildSignaturePlain(v) {
   return lines.join('\n');
 }
 
-const SIG_FF = "Arial,Helvetica,sans-serif";
+const SIG_FF = "'Source Sans Pro',Arial,Helvetica,sans-serif";
+/**
+ * Meio-termo (~560px): menor que o layout “cheio” (720), maior que o ultra-compacto (~440).
+ * GIF continua sendo esta mesma tabela em SIG_EXPORT_SCALE × pixels.
+ */
+const SIG_LAYOUT = Object.freeze({
+  maxW: 560,
+  brandColW: 118,
+  logoW: 98,
+  logoH: 61,
+  padBrandRight: 8,
+  padTextLeft: 14,
+  sealIsoW: 30,
+  sealIsoH: 21,
+  sealPbqpW: 26,
+  sealPbqpH: 20,
+  sealMarginL: -3,
+  fontNome: 17,
+  fontCargo: 12,
+  fontBody: 13,
+  fontSlogan: 12,
+  fontSloganV3: 11,
+});
+/** Escala html2canvas no GIF — pixels do arquivo ≈ largura CSS (SIG_LAYOUT.maxW) × este valor. */
+const SIG_EXPORT_SCALE = 5;
 /** Slogan do layout v3 — tom editorial (diferente de v1/v2). */
 const SIG_SLOGAN_V3 = 'Método na execução · Confiança no resultado';
 
 function sloganRowV3(padTop, color, ff) {
-  return `<tr><td style="padding:${padTop} 0 0;"><span style="font-family:${ff};font-size:12px;color:${color};font-weight:500;letter-spacing:.11em;line-height:1.5;text-transform:uppercase;opacity:.95;">${SIG_SLOGAN_V3}</span></td></tr>`;
+  const fs = SIG_LAYOUT.fontSloganV3;
+  return `<tr><td style="padding:${padTop} 0 0;"><span style="font-family:${ff};font-size:${fs}px;color:${color};font-weight:500;letter-spacing:.11em;line-height:1.5;text-transform:uppercase;opacity:.95;">${SIG_SLOGAN_V3}</span></td></tr>`;
 }
 
 const SIG_NAVY = "#003399";
 const SIG_MID_BLUE = "#4a5fa1";
 const SIG_GREEN = "#4d924d";
 
+function phones(v) {
+  const fz = SIG_LAYOUT.fontBody;
+  const sep = '<span style="color:#003399;padding:0 4px;">|</span>';
+  const link = (t) => `<a href="tel:+55${t.replace(/[\s-]/g,'')}" style="font-family:'Source Sans Pro',Arial,Helvetica,sans-serif;font-size:${fz}px;color:#003399;text-decoration:none;white-space:nowrap;">${t}</a>`;
+  let p = [link(v.cel)];
+  if (v.showFixo && v.fixo) p.push(link(v.fixo));
+  return p.join(sep);
+}
+
 function sealsBlock(v, I, sealsTop) {
   if (!v.seals) return '';
   const m = sealsTop != null ? sealsTop : '6px';
   return `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:${m} auto 0;"><tr>
-      <td style="padding:0 5px 0 0;vertical-align:middle;"><img src="${I.iso}" alt="ISO 9001" width="46" height="32" style="display:block;border:0;width:46px;height:32px;margin-left:-5px;"></td>
-      <td style="padding:0;vertical-align:middle;"><img src="${I.pbqp}" alt="PBQP-H" width="40" height="30" style="display:block;border:0;width:40px;height:30px;"></td>
+      <td style="padding:0 5px 0 0;vertical-align:middle;"><img src="${I.iso}" alt="ISO 9001" width="${SIG_LAYOUT.sealIsoW}" height="${SIG_LAYOUT.sealIsoH}" style="display:block;border:0;width:${SIG_LAYOUT.sealIsoW}px;height:${SIG_LAYOUT.sealIsoH}px;margin-left:${SIG_LAYOUT.sealMarginL}px;"></td>
+      <td style="padding:0;vertical-align:middle;"><img src="${I.pbqp}" alt="PBQP-H" width="${SIG_LAYOUT.sealPbqpW}" height="${SIG_LAYOUT.sealPbqpH}" style="display:block;border:0;width:${SIG_LAYOUT.sealPbqpW}px;height:${SIG_LAYOUT.sealPbqpH}px;"></td>
     </tr></table>`;
 }
 
 function sloganRowHtml(padTop) {
-  return `<tr><td style="padding:${padTop} 0 0;"><span style="font-family:${SIG_FF};font-size:13px;color:${SIG_GREEN};font-weight:400;letter-spacing:.06em;line-height:1.32;text-transform:uppercase;">CONSTRUÍMOS CONFIANÇA, ENTREGAMOS QUALIDADE</span></td></tr>`;
+  const fs = SIG_LAYOUT.fontSlogan;
+  return `<tr><td style="padding:${padTop} 0 0;"><span style="font-family:${SIG_FF};font-size:${fs}px;color:${SIG_GREEN};font-weight:400;letter-spacing:.06em;line-height:1.32;text-transform:uppercase;">CONSTRUÍMOS CONFIANÇA, ENTREGAMOS QUALIDADE</span></td></tr>`;
 }
 
-/** Versão 1 — referência: gaps assimétricos (4px / 14px). */
+/** Versão 1 — gaps assimétricos (~3px / ~11px). */
 function buildSignatureV1(v, I) {
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const g1 = '4px';
-  const g2 = '14px';
-  const sBelow = sealsBlock(v, I, '6px');
+  const g1 = '3px';
+  const g2 = '11px';
+  const sBelow = sealsBlock(v, I, '5px');
   const sloganBlock = v.slogan ? sloganRowHtml(g2) : '';
-  return `<table class="superenge-sig superenge-sig--v1" data-sig-version="1" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${SIG_FF};max-width:900px;width:100%;">
+  const L = SIG_LAYOUT;
+  return `<table class="superenge-sig superenge-sig--v1" data-sig-version="1" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${SIG_FF};max-width:${L.maxW}px;width:100%;">
 <tr>
-  <td width="190" style="width:190px;vertical-align:middle;padding:0 12px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
+  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
     <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
-      <img src="${I.logo}" alt="Superenge" width="158" height="98" style="display:block;border:0;width:158px;height:98px;margin:0 auto;">
+      <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
     </a>
     ${sBelow}
   </td>
-  <td style="vertical-align:middle;padding:0 0 0 22px;">
+  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-      <tr><td><strong style="font-family:${SIG_FF};font-size:20px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
-      <tr><td style="padding:${g1} 0 0;"><span style="font-family:${SIG_FF};font-size:13px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
-      <tr><td style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">
-        <a href="mailto:${v.email}" style="color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
+      <tr><td><strong data-sig="nome" style="font-family:${SIG_FF};font-size:${L.fontNome}px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
+      <tr><td style="padding:${g1} 0 0;"><span data-sig="cargo" style="font-family:${SIG_FF};font-size:${L.fontCargo}px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
+      <tr><td style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">
+        <a data-sig="email" href="mailto:${v.email}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
       </td></tr>
-      <tr><td style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
-      <tr><td style="padding:${g2} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">
-        <a href="https://${host}" style="color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
+      <tr><td data-sig="phones" style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
+      <tr><td style="padding:${g2} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">
+        <a data-sig="web" href="https://${host}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
       </td></tr>
       ${sloganBlock}
     </table>
@@ -762,32 +793,33 @@ function buildSignatureV1(v, I) {
 </table>`;
 }
 
-/** Versão 2 — mesmo conteúdo que v1, gap vertical único 8px entre todos os blocos. */
+/** Versão 2 — gap vertical único ~6px entre blocos. */
 function buildSignatureV2(v, I) {
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const g = '8px';
-  const sBelow = sealsBlock(v, I, '8px');
+  const g = '6px';
+  const sBelow = sealsBlock(v, I, '6px');
   const sloganBlock = v.slogan ? sloganRowHtml(g) : '';
-  return `<table class="superenge-sig superenge-sig--v2" data-sig-version="2" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${SIG_FF};max-width:900px;width:100%;">
+  const L = SIG_LAYOUT;
+  return `<table class="superenge-sig superenge-sig--v2" data-sig-version="2" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${SIG_FF};max-width:${L.maxW}px;width:100%;">
 <tr>
-  <td width="190" style="width:190px;vertical-align:middle;padding:0 12px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
+  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
     <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
-      <img src="${I.logo}" alt="Superenge" width="158" height="98" style="display:block;border:0;width:158px;height:98px;margin:0 auto;">
+      <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
     </a>
     ${sBelow}
   </td>
-  <td style="vertical-align:middle;padding:0 0 0 22px;">
+  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-      <tr><td><strong style="font-family:${SIG_FF};font-size:20px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
-      <tr><td style="padding:${g} 0 0;"><span style="font-family:${SIG_FF};font-size:13px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
-      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">
-        <a href="mailto:${v.email}" style="color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
+      <tr><td><strong data-sig="nome" style="font-family:${SIG_FF};font-size:${L.fontNome}px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
+      <tr><td style="padding:${g} 0 0;"><span data-sig="cargo" style="font-family:${SIG_FF};font-size:${L.fontCargo}px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">
+        <a data-sig="email" href="mailto:${v.email}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
       </td></tr>
-      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
-      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:14px;color:${SIG_NAVY};line-height:1.55;">
-        <a href="https://${host}" style="color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
+      <tr><td data-sig="phones" style="padding:${g} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">
+        <a data-sig="web" href="https://${host}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
       </td></tr>
       ${sloganBlock}
     </table>
@@ -803,30 +835,31 @@ function buildSignatureV2(v, I) {
 function buildSignatureV3(v, I) {
   const c = SIG_NAVY;
   const ff = SIG_FF;
-  const g = '8px';
+  const g = '6px';
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const sBelow = sealsBlock(v, I, '8px');
+  const sBelow = sealsBlock(v, I, '6px');
   const sloganBlock = v.slogan ? sloganRowV3(g, c, ff) : '';
-  return `<table class="superenge-sig superenge-sig--v3" data-sig-version="3" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${ff};max-width:900px;width:100%;">
+  const L = SIG_LAYOUT;
+  return `<table class="superenge-sig superenge-sig--v3" data-sig-version="3" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${ff};max-width:${L.maxW}px;width:100%;">
 <tr>
-  <td width="190" style="width:190px;vertical-align:middle;padding:0 12px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
+  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
     <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
-      <img src="${I.logo}" alt="Superenge" width="158" height="98" style="display:block;border:0;width:158px;height:98px;margin:0 auto;">
+      <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
     </a>
     ${sBelow}
   </td>
-  <td style="vertical-align:middle;padding:0 0 0 22px;">
+  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-      <tr><td><strong style="font-family:${ff};font-size:20px;color:${c};font-weight:700;letter-spacing:.05em;line-height:1.1;text-transform:uppercase;">${nm}</strong></td></tr>
-      <tr><td style="padding:${g} 0 0;"><span style="font-family:${ff};font-size:13px;color:${c};font-weight:600;letter-spacing:.16em;line-height:1.25;text-transform:uppercase;">${cr}</span></td></tr>
-      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:14px;color:${c};line-height:1.55;">
-        <a href="mailto:${v.email}" style="color:${c};text-decoration:none;">${v.email}</a>
+      <tr><td><strong data-sig="nome" style="font-family:${ff};font-size:${L.fontNome}px;color:${c};font-weight:700;letter-spacing:.05em;line-height:1.1;text-transform:uppercase;">${nm}</strong></td></tr>
+      <tr><td style="padding:${g} 0 0;"><span data-sig="cargo" style="font-family:${ff};font-size:${L.fontCargo}px;color:${c};font-weight:600;letter-spacing:.16em;line-height:1.25;text-transform:uppercase;">${cr}</span></td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:${L.fontBody}px;color:${c};line-height:1.55;">
+        <a data-sig="email" href="mailto:${v.email}" style="font-size:${L.fontBody}px;color:${c};text-decoration:none;">${v.email}</a>
       </td></tr>
-      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:14px;color:${c};line-height:1.55;">${phones(v)}</td></tr>
-      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:14px;color:${c};line-height:1.55;">
-        <a href="https://${host}" style="color:${c};text-decoration:none;font-weight:400;">${host}</a>
+      <tr><td data-sig="phones" style="padding:${g} 0 0;font-family:${ff};font-size:${L.fontBody}px;color:${c};line-height:1.55;">${phones(v)}</td></tr>
+      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:${L.fontBody}px;color:${c};line-height:1.55;">
+        <a data-sig="web" href="https://${host}" style="font-size:${L.fontBody}px;color:${c};text-decoration:none;font-weight:400;">${host}</a>
       </td></tr>
       ${sloganBlock}
     </table>
@@ -862,59 +895,129 @@ function wrapPreviewBrandColumn() {
   td.appendChild(wrap);
 }
 
+/* v4: leituras e escritas em uma única passada → 1 reflow por chamada (era até 2). */
 function applySigPreviewScale() {
   const preview = document.getElementById('preview');
-  const vp = preview?.querySelector('.sig-preview-viewport');
-  const sc = preview?.querySelector('.sig-preview-scaler');
-  const table = preview?.querySelector('.superenge-sig');
+  if (!preview) return;
+  const vp = preview.querySelector('.sig-preview-viewport');
+  const sc = preview.querySelector('.sig-preview-scaler');
+  const table = preview.querySelector('.superenge-sig');
   if (!vp || !sc || !table) return;
   const avail = Math.max(100, vp.clientWidth);
   const natural = table.offsetWidth || 1;
+  const th = table.offsetHeight;
   const s = Math.min(1, avail / natural);
   if (s < 0.998) {
     sc.style.transform = 'scale(' + s + ')';
     sc.style.transformOrigin = 'top center';
-    /* scale() não encolhe o box no layout; sem isso o overflow corta o rodapé (slogan) */
-    const th = table.offsetHeight;
     sc.style.marginBottom = ((1 - s) * -th) + 'px';
   } else {
-    sc.style.transform = 'none';
+    sc.style.transform = '';
     sc.style.marginBottom = '';
   }
-  vp.style.height = '';
 }
 
 let sigScaleObserver = null;
+let sigScaleRaf = 0;
+function scheduleApplyScale() {
+  if (sigScaleRaf) return;
+  sigScaleRaf = requestAnimationFrame(function () {
+    sigScaleRaf = 0;
+    applySigPreviewScale();
+  });
+}
 function initSigPreviewScale() {
   const wrap = document.querySelector('.sig-wrap');
   if (!wrap) return;
   if (sigScaleObserver) sigScaleObserver.disconnect();
   if (typeof ResizeObserver !== 'undefined') {
-    sigScaleObserver = new ResizeObserver(function () { applySigPreviewScale(); });
+    sigScaleObserver = new ResizeObserver(scheduleApplyScale);
     sigScaleObserver.observe(wrap);
   }
-  window.addEventListener('resize', applySigPreviewScale, { passive: true });
+  window.addEventListener('resize', scheduleApplyScale, { passive: true });
+}
+
+/* v4: pausa a animação CSS quando o preview sai do viewport (mobile com scroll longo).
+   rootMargin generoso evita falso-negativo durante mount (quando #preview ainda não tem altura). */
+function initSigVisibilityPause() {
+  const preview = document.getElementById('preview');
+  if (!preview || typeof IntersectionObserver === 'undefined') return;
+  const io = new IntersectionObserver(function (entries) {
+    for (var i = 0; i < entries.length; i++) {
+      var e = entries[i];
+      if (e.isIntersecting) preview.classList.remove('is-offscreen');
+      else preview.classList.add('is-offscreen');
+    }
+  }, { threshold: 0, rootMargin: '200px' });
+  io.observe(preview);
+}
+
+/* v4: structureKey identifica a "forma" do DOM. Se igual, evita rebuild → animação não reinicia. */
+function structureKey(v) {
+  return [
+    String(v.version || '1'),
+    v.slogan ? '1' : '0',
+    v.seals ? '1' : '0',
+    (v.showFixo && v.fixo) ? '1' : '0',
+  ].join('|');
+}
+let lastStructureKey = '';
+
+function patchSignature(v) {
+  const root = document.querySelector('#preview .superenge-sig');
+  if (!root) return false;
+  const setText = function (sel, text) {
+    const el = root.querySelector(sel);
+    if (el && el.textContent !== text) el.textContent = text;
+  };
+  const setAttr = function (sel, attr, val) {
+    const el = root.querySelector(sel);
+    if (el && el.getAttribute(attr) !== val) el.setAttribute(attr, val);
+  };
+  setText('[data-sig="nome"]', v.nome.toLocaleUpperCase('pt-BR'));
+  setText('[data-sig="cargo"]', v.cargo.toLocaleUpperCase('pt-BR'));
+  setText('[data-sig="email"]', v.email);
+  setAttr('[data-sig="email"]', 'href', 'mailto:' + v.email);
+  const phonesEl = root.querySelector('[data-sig="phones"]');
+  if (phonesEl) {
+    const newPhones = phones(v);
+    if (phonesEl.innerHTML !== newPhones) phonesEl.innerHTML = newPhones;
+  }
+  const host = v.web.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  setText('[data-sig="web"]', host);
+  setAttr('[data-sig="web"]', 'href', 'https://' + host);
+  return true;
 }
 
 let renderDebounce = null;
 function performRender() {
+  const v = V();
+  const sk = structureKey(v);
+  /* Mesma estrutura → patch in-place: animação NÃO reinicia, sem reparse de imagens base64. */
+  if (sk === lastStructureKey && document.querySelector('#preview .superenge-sig')) {
+    patchSignature(v);
+    scheduleApplyScale();
+    return;
+  }
+  lastStructureKey = sk;
   const preview = document.getElementById('preview');
   preview.innerHTML =
-    '<div class="sig-preview-viewport"><div class="sig-preview-scaler">' + buildSig() + '</div></div>';
+    '<div class="sig-preview-viewport"><div class="sig-preview-scaler">' + buildSignature(v) + '</div></div>';
   wrapPreviewBrandColumn();
-  requestAnimationFrame(function () {
-    applySigPreviewScale();
-    requestAnimationFrame(applySigPreviewScale);
-  });
-  setTimeout(applySigPreviewScale, 480);
+  scheduleApplyScale();
+  /* Recalcula scale quando fontes web carregarem (substitui setTimeout 480ms cego). */
+  if (document.fonts && document.fonts.ready && !performRender._fontsHooked) {
+    performRender._fontsHooked = true;
+    document.fonts.ready.then(scheduleApplyScale);
+  }
 }
-/** Debounce: evita innerHTML+reparse da assinatura a cada tecla (barato para texto, caro com imagens+animação). */
+/* v4: debounce 250ms (era 100ms) — mais respiro entre teclas, menos chance de patch durante digitação rápida. */
 function render() {
   if (renderDebounce) clearTimeout(renderDebounce);
   renderDebounce = setTimeout(function () {
     renderDebounce = null;
     performRender();
-  }, 100);
+  }, 250);
 }
 
 function toast(msg) {
@@ -1025,12 +1128,16 @@ function _curtainMaxWidth(t) {
 }
 
 async function exportPreviewGif() {
-  const target = document.querySelector('#preview .sig-preview-viewport');
+  /* v4: capturar a tabela direto (largura = SIG_LAYOUT.maxW) em vez do viewport do container.
+     No mobile, o viewport pode ter 320px e a assinatura ~560px — capturando o viewport, o html2canvas
+     gerava um GIF com aspect-ratio errado (parecia esticado/cortado). */
+  const sigTable = document.querySelector('#preview .superenge-sig');
   const scaler = document.querySelector('#preview .sig-preview-scaler');
+  const viewport = document.querySelector('#preview .sig-preview-viewport');
   const curtain = document.querySelector('#preview .sig-brand-curtain');
   const curtainInner = document.querySelector('#preview .sig-brand-curtain-inner');
   const btn = document.getElementById('btnExportGif');
-  if (!target || !scaler || !curtain || !curtainInner) {
+  if (!sigTable || !scaler || !viewport || !curtain || !curtainInner) {
     toast('Pré-visualize a assinatura antes de exportar o GIF.');
     return;
   }
@@ -1038,6 +1145,7 @@ async function exportPreviewGif() {
 
   const save = {
     transform: scaler.style.transform,
+    marginBottom: scaler.style.marginBottom,
   };
 
   try {
@@ -1060,47 +1168,52 @@ async function exportPreviewGif() {
     const EXPORT_OPEN_S = 2.25;
     const EXPORT_FPS = 30;
     const HOLD_MS = 5000;
-    const exportScale = 2;
+    const exportScale = SIG_EXPORT_SCALE;
     const openFrames = Math.max(2, Math.round(EXPORT_OPEN_S * EXPORT_FPS));
     const frameDelayMs = Math.max(1, Math.round(1000 / EXPORT_FPS));
     toast('Gerando GIF… ' + openFrames + ' frames (~' + EXPORT_FPS + ' fps), pode demorar');
 
+    /* Desliga o scale do preview e congela a cortina. is-static usa --sig-curtain-pos. */
     scaler.style.transform = 'none';
     scaler.style.marginBottom = '';
-    /* html2canvas captura mal clip-path: reproduz “aquela” cortina com max-width no wrap (igual lógica antiga). */
-    curtainInner.style.animation = 'none';
-    curtainInner.style.willChange = 'auto';
-    curtainInner.style.clipPath = 'none';
-    curtainInner.style.webkitClipPath = 'none';
-    curtain.style.animation = 'none';
-    curtain.style.maxWidth = '0';
+    curtain.classList.add('is-static');
+    curtain.style.setProperty('--sig-curtain-pos', '0%');
     void scaler.offsetHeight;
 
     /* Troca imagens por data URI (base64) para evitar CORS/taint no html2canvas */
-    _applyDataUriToPreviewImages(target);
-    await _waitImagesLoaded(target);
-    void target.offsetHeight;
+    _applyDataUriToPreviewImages(sigTable);
+    await _waitImagesLoaded(sigTable);
+    void sigTable.offsetHeight;
 
     const gif = GIFEncoder();
     let cw = 0;
     let ch = 0;
     const qOpts = { format: 'rgba4444', oneBitAlpha: true };
+    /* Captura a tabela na largura lógica (SIG_LAYOUT). A altura é a natural da tabela.
+       Passar width/height explícitos ajuda o html2canvas a renderizar com aspect correto. */
+    const naturalW = sigTable.offsetWidth || SIG_LAYOUT.maxW;
+    const naturalH = sigTable.offsetHeight || 115;
     for (let i = 0; i < openFrames; i++) {
       const tNorm = openFrames <= 1 ? 1 : i / (openFrames - 1);
       const t = tNorm * 0.15;
       const mw = _curtainMaxWidth(t);
-      curtain.style.maxWidth = mw + '%';
+      /* mw=0 (cortina cobrindo tudo) → mw=100 (totalmente fora à direita) */
+      curtain.style.setProperty('--sig-curtain-pos', mw + '%');
       void curtain.offsetHeight;
       await new Promise(function (resolve) {
         requestAnimationFrame(function () { requestAnimationFrame(resolve); });
       });
-      let canvas = await html2canvas(target, {
+      let canvas = await html2canvas(sigTable, {
         backgroundColor: null,
         scale: exportScale,
         logging: false,
         useCORS: false,
         allowTaint: true,
         imageTimeout: 20000,
+        width: naturalW,
+        height: naturalH,
+        windowWidth: naturalW,
+        windowHeight: naturalH,
       });
       if (!cw) {
         cw = canvas.width;
@@ -1145,11 +1258,11 @@ async function exportPreviewGif() {
     toast('Falha ao gerar o GIF: ' + (err && err.message ? err.message : 'rede ou bloqueio de script.'));
   } finally {
     scaler.style.transform = save.transform;
-    curtain.style.animation = '';
-    curtain.style.maxWidth = '';
-    curtainInner.style.animation = '';
-    curtainInner.style.clipPath = '';
-    curtainInner.style.webkitClipPath = '';
+    scaler.style.marginBottom = save.marginBottom;
+    curtain.classList.remove('is-static');
+    curtain.style.removeProperty('--sig-curtain-pos');
+    /* Força rebuild para garantir DOM limpo e animação reiniciada do início. */
+    lastStructureKey = '';
     performRender();
     if (btn) btn.disabled = false;
   }
@@ -1162,6 +1275,9 @@ document.querySelectorAll('input,select').forEach(function (el) {
 
 initSigPreviewScale();
 performRender();
+/* IO depois do primeiro render: garante que #preview já tem dimensão útil
+   (evita marcação errada de "offscreen" no mount inicial). */
+requestAnimationFrame(initSigVisibilityPause);
 </script>
 </body>
 </html>
