@@ -142,129 +142,6 @@ body{
 .tog input:checked + .sl{background:var(--green);}
 .tog input:checked + .sl::before{transform:translateX(15px);}
 
-/* Layout picker (assinatura) */
-.layout-field{
-  margin:14px 0 0;
-  padding-top:14px;
-  border-top:1px solid rgba(216,228,238,.65);
-}
-.layout-field-label{
-  display:block;
-  font-size:10.5px;font-weight:600;
-  color:var(--mid);text-transform:uppercase;letter-spacing:.03em;
-  margin-bottom:8px;
-}
-.layout-grid{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-.layout-card{
-  position:relative;
-  display:block;
-  margin:0;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
-.layout-card input{
-  position:absolute;
-  left:14px;
-  top:16px;
-  width:1px;
-  height:1px;
-  margin:0;
-  padding:0;
-  opacity:0;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  clip-path:inset(50%);
-  white-space:nowrap;
-  border:0;
-}
-.layout-card-inner{
-  display:flex;
-  align-items:flex-start;
-  gap:11px;
-  padding:11px 12px 11px 11px;
-  border-radius:10px;
-  border:1.5px solid #d4e0ec;
-  background:#f6f9fd;
-  transition:border-color var(--tr),background var(--tr),box-shadow var(--tr),transform var(--tr);
-}
-.layout-card:hover .layout-card-inner{
-  border-color:#b8c8dc;
-  background:var(--white);
-}
-.layout-card input:focus-visible + .layout-card-inner{
-  outline:none;
-  border-color:var(--cobalt);
-  box-shadow:0 0 0 3px rgba(23,53,196,.14);
-}
-.layout-card input:checked + .layout-card-inner{
-  border-color:var(--cobalt);
-  background:linear-gradient(145deg,#fff 0%,#f4f7ff 100%);
-  box-shadow:0 2px 10px rgba(12,29,142,.09),0 0 0 1px rgba(23,53,196,.12);
-}
-.layout-card-badge{
-  flex-shrink:0;
-  width:28px;height:28px;
-  border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Source Sans Pro',system-ui,sans-serif;
-  font-size:13px;font-weight:700;
-  color:var(--royal);
-  background:rgba(23,53,196,.08);
-  border:1px solid rgba(23,53,196,.12);
-  line-height:1;
-}
-.layout-card input:checked + .layout-card-inner .layout-card-badge{
-  background:linear-gradient(135deg,var(--royal) 0%,var(--cobalt) 100%);
-  color:var(--white);
-  border-color:transparent;
-  box-shadow:0 2px 6px rgba(12,29,142,.22);
-}
-.layout-card-text{min-width:0;flex:1;}
-.layout-card-title{
-  display:block;
-  font-family:'Source Sans Pro',system-ui,sans-serif;
-  font-size:12.5px;font-weight:700;
-  color:var(--navy);
-  letter-spacing:-.01em;
-  line-height:1.25;
-  margin-bottom:3px;
-}
-.layout-card-desc{
-  display:block;
-  font-size:11.5px;line-height:1.4;
-  color:var(--mid);
-}
-.layout-card-pick{
-  flex-shrink:0;
-  margin-top:2px;
-  width:18px;height:18px;
-  border-radius:50%;
-  border:2px solid #c4d0dc;
-  background:var(--white);
-  display:flex;align-items:center;justify-content:center;
-  transition:border-color var(--tr),background var(--tr);
-}
-.layout-card-pick::after{
-  content:'';
-  width:8px;height:8px;
-  border-radius:50%;
-  background:var(--green);
-  opacity:0;
-  transform:scale(0);
-  transition:opacity var(--tr),transform var(--tr);
-}
-.layout-card input:checked + .layout-card-inner .layout-card-pick{
-  border-color:var(--green);
-}
-.layout-card input:checked + .layout-card-inner .layout-card-pick::after{
-  opacity:1;
-  transform:scale(1);
-}
-
 /* ─── CANVAS ─────────────────────────────────────────────────── */
 .canvas{display:flex;flex-direction:column;gap:16px;min-width:0;}
 .canvas-top{
@@ -357,14 +234,14 @@ body{
 /* Refinos só no preview — espelhar SIG_LAYOUT.maxW / brandColW / logo (ver script). */
 #preview .superenge-sig{
   display:table;
-  width:560px;
+  width:465px;
   max-width:none;
   table-layout:fixed;
 }
 #preview .superenge-sig>tbody>tr>td:first-child,
 #preview .superenge-sig>tr>td:first-child{
-  width:118px!important;
-  max-width:118px;
+  width:130px!important;
+  max-width:130px;
   box-sizing:border-box;
 }
 #preview .superenge-sig>tbody>tr>td:last-child,
@@ -375,9 +252,9 @@ body{
 }
 #preview .superenge-sig > tbody > tr:first-child > td:first-child img[alt="Superenge"],
 #preview .superenge-sig > tr:first-child > td:first-child img[alt="Superenge"]{
-  width:98px;
-  max-width:98px;
-  height:61px;
+  width:110px;
+  max-width:110px;
+  height:69px;
   object-fit:contain;
 }
 
@@ -544,44 +421,6 @@ body{
         <div class="trow"><span>Exibir slogan</span><label class="tog"><input type="checkbox" id="showSlogan" checked><span class="sl"></span></label></div>
         <div class="trow"><span>Selos ISO / PBQP-H</span><label class="tog"><input type="checkbox" id="showSeals" checked><span class="sl"></span></label></div>
         <div class="trow"><span>Telefone fixo</span><label class="tog"><input type="checkbox" id="showFixo" checked><span class="sl"></span></label></div>
-        <div class="layout-field">
-          <span class="layout-field-label" id="layout-label">Layout da assinatura</span>
-          <div class="layout-grid" role="radiogroup" aria-labelledby="layout-label">
-            <label class="layout-card">
-              <input type="radio" name="sigVersion" value="1" checked>
-              <span class="layout-card-inner">
-                <span class="layout-card-badge" aria-hidden="true">1</span>
-                <span class="layout-card-text">
-                  <span class="layout-card-title">Referência</span>
-                  <span class="layout-card-desc">Espaçamentos clássicos; cargo em azul médio e slogan em verde.</span>
-                </span>
-                <span class="layout-card-pick" aria-hidden="true"></span>
-              </span>
-            </label>
-            <label class="layout-card">
-              <input type="radio" name="sigVersion" value="2">
-              <span class="layout-card-inner">
-                <span class="layout-card-badge" aria-hidden="true">2</span>
-                <span class="layout-card-text">
-                  <span class="layout-card-title">Espaçamento uniforme</span>
-                  <span class="layout-card-desc">Mesmo recuo vertical (8px) entre todas as linhas.</span>
-                </span>
-                <span class="layout-card-pick" aria-hidden="true"></span>
-              </span>
-            </label>
-            <label class="layout-card">
-              <input type="radio" name="sigVersion" value="3">
-              <span class="layout-card-inner">
-                <span class="layout-card-badge" aria-hidden="true">3</span>
-                <span class="layout-card-text">
-                  <span class="layout-card-title">Editorial</span>
-                  <span class="layout-card-desc">Tudo em azul marinho, tipografia e slogan refinados.</span>
-                </span>
-                <span class="layout-card-pick" aria-hidden="true"></span>
-              </span>
-            </label>
-          </div>
-        </div>
       </div>
     </div>
   </aside>
@@ -612,6 +451,13 @@ body{
         Baixar GIF animado
       </button>
     </div>
+    <p class="preview-email-hint gif-outlook-hint" role="note">
+      <strong>GIF dentro da mensagem (Outlook):</strong>
+      use <strong>Inserir → Imagens → Este dispositivo</strong> (ou arraste o ficheiro para <em>dentro</em> do texto, sobre a mensagem).
+      O botão <strong>Anexar</strong> envia o GIF como anexo em separado, não aparece inline no corpo.
+      No Outlook clássico (aplicação Windows), animações em GIF por vezes ficam só no primeiro frame; na Web costuma animar melhor.
+      <strong>Qualidade:</strong> o GIF é limitado a 256 cores e perde o texto vetorial do HTML — a exportação usa supersampling e fundo branco para aproximar o resultado; para nitidez total prefira <strong>Copiar HTML</strong>.
+    </p>
   </section>
 </main>
 
@@ -649,8 +495,7 @@ function getSigImagesForPreview() {
 }
 
 function getSigVersion() {
-  const r = document.querySelector('input[name="sigVersion"]:checked');
-  return r ? r.value : '1';
+  return '1';
 }
 
 function V() {
@@ -699,29 +544,33 @@ function buildSignaturePlain(v) {
 
 const SIG_FF = "'Source Sans Pro',Arial,Helvetica,sans-serif";
 /**
- * Meio-termo (~560px): menor que o layout “cheio” (720), maior que o ultra-compacto (~440).
- * GIF continua sendo esta mesma tabela em SIG_EXPORT_SCALE × pixels.
+ * ~465px ≈ 12,3 cm em 96 DPI. Coluna esquerda (logo + selos) mais larga que a versão compacta.
+ * GIF exportado: ver GIF_CAPTURE_SUPERSAMPLE (supersampling antes da quantização).
  */
 const SIG_LAYOUT = Object.freeze({
-  maxW: 560,
-  brandColW: 118,
-  logoW: 98,
-  logoH: 61,
+  maxW: 465,
+  brandColW: 130,
+  logoW: 110,
+  logoH: 69,
   padBrandRight: 8,
-  padTextLeft: 14,
-  sealIsoW: 30,
-  sealIsoH: 21,
-  sealPbqpW: 26,
-  sealPbqpH: 20,
-  sealMarginL: -3,
-  fontNome: 17,
-  fontCargo: 12,
-  fontBody: 13,
-  fontSlogan: 12,
-  fontSloganV3: 11,
+  padTextLeft: 11,
+  sealIsoW: 42,
+  sealIsoH: 29,
+  sealPbqpW: 38,
+  sealPbqpH: 27,
+  sealMarginL: -2,
+  fontNome: 13,
+  fontCargo: 10,
+  fontBody: 11,
+  fontSlogan: 8,
+  fontSloganV3: 9,
 });
-/** Escala html2canvas no GIF — pixels do arquivo ≈ largura CSS (SIG_LAYOUT.maxW) × este valor. */
-const SIG_EXPORT_SCALE = 5;
+/**
+ * GIF animado: factor de supersampling do html2canvas antes de reduzir para o tamanho CSS.
+ * Valores maiores = mais nitidez (especialmente em texto pequeno), mas exportação mais lenta.
+ * 3 ≈ equilíbrio; 4 = máxima nitidez razoável no browser.
+ */
+const GIF_CAPTURE_SUPERSAMPLE = 4;
 /** Slogan do layout v3 — tom editorial (diferente de v1/v2). */
 const SIG_SLOGAN_V3 = 'Método na execução · Confiança no resultado';
 
@@ -743,6 +592,32 @@ function phones(v) {
   return p.join(sep);
 }
 
+function sigTableWidthStyle(forEmail) {
+  const w = SIG_LAYOUT.maxW;
+  return forEmail
+    ? `max-width:${w}px;width:${w}px;`
+    : `max-width:${w}px;width:100%;`;
+}
+
+/**
+ * Outlook (web/app, modo escuro) costuma recolorir texto sem "papel" claro — vira branco no corpo escuro,
+ * enquanto links mantêm azul. Envolvimento + fundo explícito na tabela interna melhora "Manter formatação da origem".
+ */
+function sigEmailOuterShell(innerHtml) {
+  return (
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" ' +
+    'style="border-collapse:collapse;background-color:#ffffff;mso-line-height-rule:exactly;">' +
+    '<tr><td bgcolor="#ffffff" style="background-color:#ffffff;padding:0;mso-line-height-rule:exactly;' +
+    'forced-color-adjust:none;-webkit-print-color-adjust:exact;color-scheme:only light;">' +
+    innerHtml +
+    '</td></tr></table>'
+  );
+}
+
+function sigEmailRootBg(forEmail) {
+  return forEmail ? 'background-color:#ffffff;' : '';
+}
+
 function sealsBlock(v, I, sealsTop) {
   if (!v.seals) return '';
   const m = sealsTop != null ? sealsTop : '6px';
@@ -757,25 +632,29 @@ function sloganRowHtml(padTop) {
   return `<tr><td style="padding:${padTop} 0 0;"><span style="font-family:${SIG_FF};font-size:${fs}px;color:${SIG_GREEN};font-weight:400;letter-spacing:.06em;line-height:1.32;text-transform:uppercase;">CONSTRUÍMOS CONFIANÇA, ENTREGAMOS QUALIDADE</span></td></tr>`;
 }
 
-/** Versão 1 — gaps assimétricos (~3px / ~11px). */
-function buildSignatureV1(v, I) {
+/** Versão 1 — gaps compactos (~3px); website com menos espaço em relação a telefones e slogan. */
+function buildSignatureV1(v, I, forEmail) {
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
   const g1 = '3px';
-  const g2 = '11px';
+  const gWeb = '3px';
+  const gSlogan = '5px';
   const sBelow = sealsBlock(v, I, '5px');
-  const sloganBlock = v.slogan ? sloganRowHtml(g2) : '';
+  const sloganBlock = v.slogan ? sloganRowHtml(gSlogan) : '';
   const L = SIG_LAYOUT;
-  return `<table class="superenge-sig superenge-sig--v1" data-sig-version="1" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${SIG_FF};max-width:${L.maxW}px;width:100%;">
+  const tw = sigTableWidthStyle(!!forEmail);
+  const rbg = sigEmailRootBg(!!forEmail);
+  const rootBgAttr = forEmail ? ' bgcolor="#ffffff"' : '';
+  return `<table class="superenge-sig superenge-sig--v1" data-sig-version="1" role="presentation" cellpadding="0" cellspacing="0" border="0" width="${L.maxW}"${rootBgAttr} style="border-collapse:collapse;font-family:${SIG_FF};${rbg}${tw}">
 <tr>
-  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
+  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;${rbg}">
     <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
       <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
     </a>
     ${sBelow}
   </td>
-  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;">
+  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;${rbg}">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
       <tr><td><strong data-sig="nome" style="font-family:${SIG_FF};font-size:${L.fontNome}px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
       <tr><td style="padding:${g1} 0 0;"><span data-sig="cargo" style="font-family:${SIG_FF};font-size:${L.fontCargo}px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
@@ -783,7 +662,7 @@ function buildSignatureV1(v, I) {
         <a data-sig="email" href="mailto:${v.email}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
       </td></tr>
       <tr><td data-sig="phones" style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
-      <tr><td style="padding:${g2} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">
+      <tr><td style="padding:${gWeb} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.28;">
         <a data-sig="web" href="https://${host}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
       </td></tr>
       ${sloganBlock}
@@ -794,23 +673,28 @@ function buildSignatureV1(v, I) {
 }
 
 /** Versão 2 — gap vertical único ~6px entre blocos. */
-function buildSignatureV2(v, I) {
+function buildSignatureV2(v, I, forEmail) {
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
   const g = '6px';
+  const gWeb = '3px';
+  const gSlogan = '5px';
   const sBelow = sealsBlock(v, I, '6px');
-  const sloganBlock = v.slogan ? sloganRowHtml(g) : '';
+  const sloganBlock = v.slogan ? sloganRowHtml(gSlogan) : '';
   const L = SIG_LAYOUT;
-  return `<table class="superenge-sig superenge-sig--v2" data-sig-version="2" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${SIG_FF};max-width:${L.maxW}px;width:100%;">
+  const tw = sigTableWidthStyle(!!forEmail);
+  const rbg = sigEmailRootBg(!!forEmail);
+  const rootBgAttr = forEmail ? ' bgcolor="#ffffff"' : '';
+  return `<table class="superenge-sig superenge-sig--v2" data-sig-version="2" role="presentation" cellpadding="0" cellspacing="0" border="0" width="${L.maxW}"${rootBgAttr} style="border-collapse:collapse;font-family:${SIG_FF};${rbg}${tw}">
 <tr>
-  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
+  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;${rbg}">
     <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
       <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
     </a>
     ${sBelow}
   </td>
-  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;">
+  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;${rbg}">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
       <tr><td><strong data-sig="nome" style="font-family:${SIG_FF};font-size:${L.fontNome}px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
       <tr><td style="padding:${g} 0 0;"><span data-sig="cargo" style="font-family:${SIG_FF};font-size:${L.fontCargo}px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
@@ -818,7 +702,7 @@ function buildSignatureV2(v, I) {
         <a data-sig="email" href="mailto:${v.email}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
       </td></tr>
       <tr><td data-sig="phones" style="padding:${g} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
-      <tr><td style="padding:${g} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">
+      <tr><td style="padding:${gWeb} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.28;">
         <a data-sig="web" href="https://${host}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
       </td></tr>
       ${sloganBlock}
@@ -832,25 +716,30 @@ function buildSignatureV2(v, I) {
  * Versão 3 — mesma informação que v1/v2, toda em #003399; cargo com peso médio;
  * slogan próprio (SIG_SLOGAN_V3), tipografia mais editorial.
  */
-function buildSignatureV3(v, I) {
+function buildSignatureV3(v, I, forEmail) {
   const c = SIG_NAVY;
   const ff = SIG_FF;
   const g = '6px';
+  const gWeb = '3px';
+  const gSlogan = '5px';
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
   const sBelow = sealsBlock(v, I, '6px');
-  const sloganBlock = v.slogan ? sloganRowV3(g, c, ff) : '';
+  const sloganBlock = v.slogan ? sloganRowV3(gSlogan, c, ff) : '';
   const L = SIG_LAYOUT;
-  return `<table class="superenge-sig superenge-sig--v3" data-sig-version="3" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:${ff};max-width:${L.maxW}px;width:100%;">
+  const tw = sigTableWidthStyle(!!forEmail);
+  const rbg = sigEmailRootBg(!!forEmail);
+  const rootBgAttr = forEmail ? ' bgcolor="#ffffff"' : '';
+  return `<table class="superenge-sig superenge-sig--v3" data-sig-version="3" role="presentation" cellpadding="0" cellspacing="0" border="0" width="${L.maxW}"${rootBgAttr} style="border-collapse:collapse;font-family:${ff};${rbg}${tw}">
 <tr>
-  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;">
+  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;${rbg}">
     <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
       <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
     </a>
     ${sBelow}
   </td>
-  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;">
+  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;${rbg}">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
       <tr><td><strong data-sig="nome" style="font-family:${ff};font-size:${L.fontNome}px;color:${c};font-weight:700;letter-spacing:.05em;line-height:1.1;text-transform:uppercase;">${nm}</strong></td></tr>
       <tr><td style="padding:${g} 0 0;"><span data-sig="cargo" style="font-family:${ff};font-size:${L.fontCargo}px;color:${c};font-weight:600;letter-spacing:.16em;line-height:1.25;text-transform:uppercase;">${cr}</span></td></tr>
@@ -858,7 +747,7 @@ function buildSignatureV3(v, I) {
         <a data-sig="email" href="mailto:${v.email}" style="font-size:${L.fontBody}px;color:${c};text-decoration:none;">${v.email}</a>
       </td></tr>
       <tr><td data-sig="phones" style="padding:${g} 0 0;font-family:${ff};font-size:${L.fontBody}px;color:${c};line-height:1.55;">${phones(v)}</td></tr>
-      <tr><td style="padding:${g} 0 0;font-family:${ff};font-size:${L.fontBody}px;color:${c};line-height:1.55;">
+      <tr><td style="padding:${gWeb} 0 0;font-family:${ff};font-size:${L.fontBody}px;color:${c};line-height:1.28;">
         <a data-sig="web" href="https://${host}" style="font-size:${L.fontBody}px;color:${c};text-decoration:none;font-weight:400;">${host}</a>
       </td></tr>
       ${sloganBlock}
@@ -872,9 +761,11 @@ function buildSignature(v, opts) {
   const forEmail = opts && opts.forEmail;
   const I = forEmail ? getSigImageUrlsForEmail() : getSigImagesForPreview();
   const ver = String(v.version || '1');
-  if (ver === '3') return buildSignatureV3(v, I);
-  if (ver === '2') return buildSignatureV2(v, I);
-  return buildSignatureV1(v, I);
+  let inner;
+  if (ver === '3') inner = buildSignatureV3(v, I, forEmail);
+  else if (ver === '2') inner = buildSignatureV2(v, I, forEmail);
+  else inner = buildSignatureV1(v, I, forEmail);
+  return forEmail ? sigEmailOuterShell(inner) : inner;
 }
 
 function buildSig() {
@@ -1092,9 +983,44 @@ function _normalizeFrameCanvas(src, w, h) {
   c.width = w;
   c.height = h;
   const cx = c.getContext('2d');
+  cx.imageSmoothingEnabled = true;
+  cx.imageSmoothingQuality = 'high';
   cx.clearRect(0, 0, w, h);
   cx.drawImage(src, 0, 0, w, h);
   return c;
+}
+
+/** Redução em degraus (≈½ cada passo) até ao tamanho final: melhor que um único salto 4×→1×. */
+function _downscaleCanvasToCssPx(src, cssW, cssH) {
+  const w = Math.max(1, Math.round(cssW));
+  const h = Math.max(1, Math.round(cssH));
+  if (src.width === w && src.height === h) return src;
+  let cur = src;
+  while (cur.width > w || cur.height > h) {
+    const nw = Math.max(w, Math.round(cur.width * 0.5));
+    const nh = Math.max(h, Math.round(cur.height * 0.5));
+    if (nw === cur.width && nh === cur.height) break;
+    const next = document.createElement('canvas');
+    next.width = nw;
+    next.height = nh;
+    const nx = next.getContext('2d');
+    nx.imageSmoothingEnabled = true;
+    nx.imageSmoothingQuality = 'high';
+    nx.drawImage(cur, 0, 0, cur.width, cur.height, 0, 0, nw, nh);
+    cur = next;
+    if (nw === w && nh === h) break;
+  }
+  if (cur.width !== w || cur.height !== h) {
+    const last = document.createElement('canvas');
+    last.width = w;
+    last.height = h;
+    const lx = last.getContext('2d');
+    lx.imageSmoothingEnabled = true;
+    lx.imageSmoothingQuality = 'high';
+    lx.drawImage(cur, 0, 0, cur.width, cur.height, 0, 0, w, h);
+    cur = last;
+  }
+  return cur;
 }
 
 /** html2canvas costuma falhar com imagens CDN (CORS/taint); GIF usa sempre data URI do objeto A. */
@@ -1129,7 +1055,7 @@ function _curtainMaxWidth(t) {
 
 async function exportPreviewGif() {
   /* v4: capturar a tabela direto (largura = SIG_LAYOUT.maxW) em vez do viewport do container.
-     No mobile, o viewport pode ter 320px e a assinatura ~560px — capturando o viewport, o html2canvas
+     No mobile, o viewport pode ser estreito — capturando o viewport, o html2canvas
      gerava um GIF com aspect-ratio errado (parecia esticado/cortado). */
   const sigTable = document.querySelector('#preview .superenge-sig');
   const scaler = document.querySelector('#preview .sig-preview-scaler');
@@ -1168,7 +1094,7 @@ async function exportPreviewGif() {
     const EXPORT_OPEN_S = 2.25;
     const EXPORT_FPS = 30;
     const HOLD_MS = 5000;
-    const exportScale = SIG_EXPORT_SCALE;
+    const supersample = GIF_CAPTURE_SUPERSAMPLE;
     const openFrames = Math.max(2, Math.round(EXPORT_OPEN_S * EXPORT_FPS));
     const frameDelayMs = Math.max(1, Math.round(1000 / EXPORT_FPS));
     toast('Gerando GIF… ' + openFrames + ' frames (~' + EXPORT_FPS + ' fps), pode demorar');
@@ -1185,14 +1111,13 @@ async function exportPreviewGif() {
     await _waitImagesLoaded(sigTable);
     void sigTable.offsetHeight;
 
+    /* Largura/altura em CSS da tabela; supersample (GIF_CAPTURE_SUPERSAMPLE) + branco + rgb565 ↓ ruído vs. HTML. */
+    const naturalW = sigTable.offsetWidth || SIG_LAYOUT.maxW;
+    const naturalH = sigTable.offsetHeight || 115;
+
     const gif = GIFEncoder();
     let cw = 0;
     let ch = 0;
-    const qOpts = { format: 'rgba4444', oneBitAlpha: true };
-    /* Captura a tabela na largura lógica (SIG_LAYOUT). A altura é a natural da tabela.
-       Passar width/height explícitos ajuda o html2canvas a renderizar com aspect correto. */
-    const naturalW = sigTable.offsetWidth || SIG_LAYOUT.maxW;
-    const naturalH = sigTable.offsetHeight || 115;
     for (let i = 0; i < openFrames; i++) {
       const tNorm = openFrames <= 1 ? 1 : i / (openFrames - 1);
       const t = tNorm * 0.15;
@@ -1204,8 +1129,8 @@ async function exportPreviewGif() {
         requestAnimationFrame(function () { requestAnimationFrame(resolve); });
       });
       let canvas = await html2canvas(sigTable, {
-        backgroundColor: null,
-        scale: exportScale,
+        backgroundColor: '#ffffff',
+        scale: supersample,
         logging: false,
         useCORS: false,
         allowTaint: true,
@@ -1215,6 +1140,7 @@ async function exportPreviewGif() {
         windowWidth: naturalW,
         windowHeight: naturalH,
       });
+      canvas = _downscaleCanvasToCssPx(canvas, naturalW, naturalH);
       if (!cw) {
         cw = canvas.width;
         ch = canvas.height;
@@ -1223,21 +1149,10 @@ async function exportPreviewGif() {
       }
       const ctx = canvas.getContext('2d');
       const im = ctx.getImageData(0, 0, cw, ch);
-      const palette = quantize(im.data, 256, qOpts);
-      const index = applyPalette(im.data, palette, 'rgba4444');
-      let transparentIdx = -1;
-      for (let pi = 0; pi < palette.length; pi++) {
-        if (palette[pi].length > 3 && palette[pi][3] === 0) {
-          transparentIdx = pi;
-          break;
-        }
-      }
+      const palette = quantize(im.data, 256);
+      const index = applyPalette(im.data, palette);
       const isLast = (i === openFrames - 1);
       const frameOpts = { palette: palette, delay: isLast ? HOLD_MS : frameDelayMs };
-      if (transparentIdx >= 0) {
-        frameOpts.transparent = true;
-        frameOpts.transparentIndex = transparentIdx;
-      }
       gif.writeFrame(index, cw, ch, frameOpts);
     }
     gif.finish();
@@ -1252,7 +1167,7 @@ async function exportPreviewGif() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast('✓ GIF baixado. Insira no e-mail como imagem.');
+    toast('✓ GIF baixado. No Outlook: Inserir → Imagens — não use Anexar.');
   } catch (err) {
     console.error(err);
     toast('Falha ao gerar o GIF: ' + (err && err.message ? err.message : 'rede ou bloqueio de script.'));
