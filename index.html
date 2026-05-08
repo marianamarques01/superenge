@@ -446,9 +446,13 @@ body{
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="9" height="12" rx="1.5"/><path d="M5 1h7.5A1.5 1.5 0 0114 2.5V13"/></svg>
         Copiar HTML
       </button>
-      <button class="btn btn-o" type="button" id="btnExportGif" onclick="exportPreviewGif()">
+      <button class="btn btn-o btn-gif-export" type="button" id="btnExportGif" onclick="exportPreviewGif()">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm11 0H3v7h10V3zM5 13.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5z"/></svg>
-        Baixar GIF animado
+        Baixar GIF (assinatura inteira)
+      </button>
+      <button class="btn btn-o btn-gif-export" type="button" id="btnExportGifBrand" onclick="exportPreviewGif({ brandOnly: true })">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm11 0H3v7h10V3zM5 13.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5z"/></svg>
+        Baixar GIF (só logo / coluna)
       </button>
     </div>
     <p class="preview-email-hint gif-outlook-hint" role="note">
@@ -456,6 +460,7 @@ body{
       use <strong>Inserir → Imagens → Este dispositivo</strong> (ou arraste o ficheiro para <em>dentro</em> do texto, sobre a mensagem).
       O botão <strong>Anexar</strong> envia o GIF como anexo em separado, não aparece inline no corpo.
       No Outlook clássico (aplicação Windows), animações em GIF por vezes ficam só no primeiro frame; na Web costuma animar melhor.
+      Use <strong>Baixar GIF (só logo / coluna)</strong> para um ficheiro pequeno a hospedar e referenciar por URL na assinatura (inclui selos se estiverem visíveis no preview).
       <strong>Qualidade:</strong> o GIF é limitado a 256 cores e perde o texto vetorial do HTML — a exportação usa supersampling e fundo branco para aproximar o resultado; para nitidez total prefira <strong>Copiar HTML</strong>.
     </p>
   </section>
@@ -473,25 +478,34 @@ const A = {
 
 /**
  * Imagens para colar no Gmail (URLs https). Gmail costuma bloquear data:image no HTML colado.
- * Padrão: raw.githubusercontent.com (costuma funcionar melhor com o proxy de imagens do Gmail que jsDelivr).
- * Só precisa de git push da pasta assinatura-email/. Repo privado: use SIG_EMAIL_IMAGE_URLS ou torne o repo público.
+ * GIF da coluna: ficheiro em assinatura-email/ na branch main (raw.githubusercontent.com).
+ * Evite github.com/releases/... no src — o Gmail muitas vezes remove essa imagem ao colar; o Release pode servir só para descarregar o .gif antes de dar commit.
+ * Repo privado / overrides: use SIG_EMAIL_IMAGE_URLS (objeto com logo, iso, pbqp).
  */
 var SIG_EMAIL_IMAGE_BASE = 'https://raw.githubusercontent.com/marianamarques01/superenge/main/assinatura-email/';
-/** Repositório GitHub privado? jsDelivr não funciona. Suba os 3 PNG em ImgBB (ou similar) e preencha as URLs aqui — ou crie um repo público só com assinatura-email/. */
+/** Mesmo nome do ficheiro no repo (faça git add + push do .gif exportado para esta pasta). */
+var SIG_EMAIL_LOGO_COLUMN_GIF_URL = SIG_EMAIL_IMAGE_BASE + 'superenge-v2-logo-coluna-animada.gif';
+/** Se true e a logo de e-mail for SIG_EMAIL_LOGO_COLUMN_GIF_URL, não duplica selos (já vêm no GIF). */
+var SIG_EMAIL_BRAND_GIF_INCLUDES_SEALS = true;
+/** Pixeis lógicos do GIF exportado (devem bater com o .gif hospedado). Gmail distorce com height:auto. Ajuste após re-exportar (inspecionar ficheiro ou abrir o GIF no browser). */
+var SIG_EMAIL_BRAND_GIF_PX_W = 122;
+var SIG_EMAIL_BRAND_GIF_PX_H = 103;
+/** Repositório GitHub privado? Suba os PNG em ImgBB (ou similar) e preencha as URLs aqui — ou crie um repo público só com assinatura-email/. */
 var SIG_EMAIL_IMAGE_URLS = null;
 function getSigImageUrlsForEmail() {
   if (SIG_EMAIL_IMAGE_URLS && SIG_EMAIL_IMAGE_URLS.logo && SIG_EMAIL_IMAGE_URLS.iso && SIG_EMAIL_IMAGE_URLS.pbqp) {
     return SIG_EMAIL_IMAGE_URLS;
   }
   return {
-    logo: SIG_EMAIL_IMAGE_BASE + 'logo-marca.png',
+    logo: SIG_EMAIL_LOGO_COLUMN_GIF_URL,
     iso: SIG_EMAIL_IMAGE_BASE + 'selo-iso-9001.png',
     pbqp: SIG_EMAIL_IMAGE_BASE + 'selo-pbqp-h.png',
   };
 }
 function getSigImagesForPreview() {
   if (typeof location !== 'undefined' && location.protocol === 'file:') return A;
-  return getSigImageUrlsForEmail();
+  var e = getSigImageUrlsForEmail();
+  return { logo: A.logo, iso: e.iso, pbqp: e.pbqp };
 }
 
 function getSigVersion() {
@@ -567,10 +581,11 @@ const SIG_LAYOUT = Object.freeze({
 });
 /**
  * GIF animado: factor de supersampling do html2canvas antes de reduzir para o tamanho CSS.
- * Valores maiores = mais nitidez (especialmente em texto pequeno), mas exportação mais lenta.
- * 3 ≈ equilíbrio; 4 = máxima nitidez razoável no browser.
+ * Valores maiores = mais nitidez (especialmente após quantizar a 256 cores), mas exportação mais lenta.
  */
-const GIF_CAPTURE_SUPERSAMPLE = 4;
+const GIF_CAPTURE_SUPERSAMPLE = 5;
+/** Só coluna da marca: ainda mais amostras (menos banding / serrilhado no logo). */
+const GIF_CAPTURE_SUPERSAMPLE_BRAND = 7;
 /** Slogan do layout v3 — tom editorial (diferente de v1/v2). */
 const SIG_SLOGAN_V3 = 'Método na execução · Confiança no resultado';
 
@@ -626,6 +641,29 @@ function sealsBlock(v, I, sealsTop) {
       <td style="padding:0;vertical-align:middle;"><img src="${I.pbqp}" alt="PBQP-H" width="${SIG_LAYOUT.sealPbqpW}" height="${SIG_LAYOUT.sealPbqpH}" style="display:block;border:0;width:${SIG_LAYOUT.sealPbqpW}px;height:${SIG_LAYOUT.sealPbqpH}px;"></td>
     </tr></table>`;
 }
+function sealsBelowBrandColumn(v, I, forEmail, sealsTop) {
+  if (forEmail && SIG_EMAIL_BRAND_GIF_INCLUDES_SEALS && I.logo === SIG_EMAIL_LOGO_COLUMN_GIF_URL) return '';
+  return sealsBlock(v, I, sealsTop);
+}
+function sigBrandColumnCellStyle(L, forEmail, I, rbg) {
+  return 'width:' + L.brandColW + 'px;min-width:' + L.brandColW + 'px;vertical-align:middle;padding:0 ' + L.padBrandRight + 'px 0 0;border-right:1px solid #e0e0e0;text-align:center;' + rbg;
+}
+function sigBrandLogoLinkStyle(forEmail, I) {
+  return 'text-decoration:none;display:block;';
+}
+/** Logo PNG no preview; GIF no e-mail com width+height explícitos (simples — Gmail remove estruturas “trick” com font-size:0). */
+function sigBrandLogoImgHtml(I, forEmail, L) {
+  const colGif = forEmail && I.logo === SIG_EMAIL_LOGO_COLUMN_GIF_URL;
+  if (colGif) {
+    const w = SIG_EMAIL_BRAND_GIF_PX_W;
+    const h = SIG_EMAIL_BRAND_GIF_PX_H;
+    return (
+      '<img src="' + I.logo + '" alt="Superenge" width="' + w + '" height="' + h + '" border="0" ' +
+      'style="display:block;border:0;width:' + w + 'px;height:' + h + 'px;margin:0 auto;">'
+    );
+  }
+  return '<img src="' + I.logo + '" alt="Superenge" width="' + L.logoW + '" height="' + L.logoH + '" style="display:block;border:0;width:' + L.logoW + 'px;height:' + L.logoH + 'px;margin:0 auto;">';
+}
 
 function sloganRowHtml(padTop) {
   const fs = SIG_LAYOUT.fontSlogan;
@@ -640,7 +678,7 @@ function buildSignatureV1(v, I, forEmail) {
   const g1 = '3px';
   const gWeb = '3px';
   const gSlogan = '5px';
-  const sBelow = sealsBlock(v, I, '5px');
+  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '5px');
   const sloganBlock = v.slogan ? sloganRowHtml(gSlogan) : '';
   const L = SIG_LAYOUT;
   const tw = sigTableWidthStyle(!!forEmail);
@@ -648,9 +686,9 @@ function buildSignatureV1(v, I, forEmail) {
   const rootBgAttr = forEmail ? ' bgcolor="#ffffff"' : '';
   return `<table class="superenge-sig superenge-sig--v1" data-sig-version="1" role="presentation" cellpadding="0" cellspacing="0" border="0" width="${L.maxW}"${rootBgAttr} style="border-collapse:collapse;font-family:${SIG_FF};${rbg}${tw}">
 <tr>
-  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;${rbg}">
-    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
-      <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
+  <td width="${L.brandColW}" style="${sigBrandColumnCellStyle(L, forEmail, I, rbg)}">
+    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="${sigBrandLogoLinkStyle(forEmail, I)}">
+      ${sigBrandLogoImgHtml(I, forEmail, L)}
     </a>
     ${sBelow}
   </td>
@@ -680,7 +718,7 @@ function buildSignatureV2(v, I, forEmail) {
   const g = '6px';
   const gWeb = '3px';
   const gSlogan = '5px';
-  const sBelow = sealsBlock(v, I, '6px');
+  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '6px');
   const sloganBlock = v.slogan ? sloganRowHtml(gSlogan) : '';
   const L = SIG_LAYOUT;
   const tw = sigTableWidthStyle(!!forEmail);
@@ -688,9 +726,9 @@ function buildSignatureV2(v, I, forEmail) {
   const rootBgAttr = forEmail ? ' bgcolor="#ffffff"' : '';
   return `<table class="superenge-sig superenge-sig--v2" data-sig-version="2" role="presentation" cellpadding="0" cellspacing="0" border="0" width="${L.maxW}"${rootBgAttr} style="border-collapse:collapse;font-family:${SIG_FF};${rbg}${tw}">
 <tr>
-  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;${rbg}">
-    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
-      <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
+  <td width="${L.brandColW}" style="${sigBrandColumnCellStyle(L, forEmail, I, rbg)}">
+    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="${sigBrandLogoLinkStyle(forEmail, I)}">
+      ${sigBrandLogoImgHtml(I, forEmail, L)}
     </a>
     ${sBelow}
   </td>
@@ -725,7 +763,7 @@ function buildSignatureV3(v, I, forEmail) {
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const sBelow = sealsBlock(v, I, '6px');
+  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '6px');
   const sloganBlock = v.slogan ? sloganRowV3(gSlogan, c, ff) : '';
   const L = SIG_LAYOUT;
   const tw = sigTableWidthStyle(!!forEmail);
@@ -733,9 +771,9 @@ function buildSignatureV3(v, I, forEmail) {
   const rootBgAttr = forEmail ? ' bgcolor="#ffffff"' : '';
   return `<table class="superenge-sig superenge-sig--v3" data-sig-version="3" role="presentation" cellpadding="0" cellspacing="0" border="0" width="${L.maxW}"${rootBgAttr} style="border-collapse:collapse;font-family:${ff};${rbg}${tw}">
 <tr>
-  <td width="${L.brandColW}" style="width:${L.brandColW}px;vertical-align:middle;padding:0 ${L.padBrandRight}px 0 0;border-right:1px solid #e0e0e0;text-align:center;${rbg}">
-    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
-      <img src="${I.logo}" alt="Superenge" width="${L.logoW}" height="${L.logoH}" style="display:block;border:0;width:${L.logoW}px;height:${L.logoH}px;margin:0 auto;">
+  <td width="${L.brandColW}" style="${sigBrandColumnCellStyle(L, forEmail, I, rbg)}">
+    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="${sigBrandLogoLinkStyle(forEmail, I)}">
+      ${sigBrandLogoImgHtml(I, forEmail, L)}
     </a>
     ${sBelow}
   </td>
@@ -1053,21 +1091,34 @@ function _curtainMaxWidth(t) {
   return (t / 0.15) * 100;
 }
 
-async function exportPreviewGif() {
+/** Tamanho CSS do elemento a capturar (evita subpixel / offsetWidth 0 em alguns layouts). */
+function _gifCaptureCssSize(el) {
+  var br = el.getBoundingClientRect();
+  var w = Math.max(1, Math.round(br.width));
+  var h = Math.max(1, Math.round(br.height));
+  if (w < 2 || h < 2) {
+    w = Math.max(1, Math.round(el.offsetWidth));
+    h = Math.max(1, Math.round(el.offsetHeight));
+  }
+  return { w: w, h: h };
+}
+
+async function exportPreviewGif(opts) {
+  const brandOnly = !!(opts && opts.brandOnly);
   /* v4: capturar a tabela direto (largura = SIG_LAYOUT.maxW) em vez do viewport do container.
      No mobile, o viewport pode ser estreito — capturando o viewport, o html2canvas
-     gerava um GIF com aspect-ratio errado (parecia esticado/cortado). */
+     gerava um GIF com aspect-ratio errado (parecia esticado/cortado).
+     brandOnly: captura só .sig-brand-curtain (logo + selos no preview) para hospedar como URL. */
   const sigTable = document.querySelector('#preview .superenge-sig');
   const scaler = document.querySelector('#preview .sig-preview-scaler');
   const viewport = document.querySelector('#preview .sig-preview-viewport');
   const curtain = document.querySelector('#preview .sig-brand-curtain');
-  const curtainInner = document.querySelector('#preview .sig-brand-curtain-inner');
-  const btn = document.getElementById('btnExportGif');
-  if (!sigTable || !scaler || !viewport || !curtain || !curtainInner) {
+  if (!sigTable || !scaler || !viewport || !curtain) {
     toast('Pré-visualize a assinatura antes de exportar o GIF.');
     return;
   }
-  if (btn) btn.disabled = true;
+  const captureEl = brandOnly ? curtain : sigTable;
+  document.querySelectorAll('.btn-gif-export').forEach(function (b) { b.disabled = true; });
 
   const save = {
     transform: scaler.style.transform,
@@ -1082,6 +1133,7 @@ async function exportPreviewGif() {
     const GIFEncoder = ge.GIFEncoder || ge.default;
     const quantize = ge.quantize;
     const applyPalette = ge.applyPalette;
+    const prequantize = ge.prequantize;
     if (typeof GIFEncoder !== 'function' || typeof quantize !== 'function' || typeof applyPalette !== 'function') {
       throw new Error('Bibliotecas GIF não carregaram');
     }
@@ -1094,10 +1146,10 @@ async function exportPreviewGif() {
     const EXPORT_OPEN_S = 2.25;
     const EXPORT_FPS = 30;
     const HOLD_MS = 5000;
-    const supersample = GIF_CAPTURE_SUPERSAMPLE;
+    const supersample = brandOnly ? GIF_CAPTURE_SUPERSAMPLE_BRAND : GIF_CAPTURE_SUPERSAMPLE;
     const openFrames = Math.max(2, Math.round(EXPORT_OPEN_S * EXPORT_FPS));
     const frameDelayMs = Math.max(1, Math.round(1000 / EXPORT_FPS));
-    toast('Gerando GIF… ' + openFrames + ' frames (~' + EXPORT_FPS + ' fps), pode demorar');
+    toast('Gerando GIF' + (brandOnly ? ' (só coluna da marca)… ' : '… ') + openFrames + ' frames (~' + EXPORT_FPS + ' fps), pode demorar');
 
     /* Desliga o scale do preview e congela a cortina. is-static usa --sig-curtain-pos. */
     scaler.style.transform = 'none';
@@ -1107,13 +1159,13 @@ async function exportPreviewGif() {
     void scaler.offsetHeight;
 
     /* Troca imagens por data URI (base64) para evitar CORS/taint no html2canvas */
-    _applyDataUriToPreviewImages(sigTable);
-    await _waitImagesLoaded(sigTable);
-    void sigTable.offsetHeight;
+    _applyDataUriToPreviewImages(captureEl);
+    await _waitImagesLoaded(captureEl);
+    void captureEl.offsetHeight;
 
-    /* Largura/altura em CSS da tabela; supersample (GIF_CAPTURE_SUPERSAMPLE) + branco + rgb565 ↓ ruído vs. HTML. */
-    const naturalW = sigTable.offsetWidth || SIG_LAYOUT.maxW;
-    const naturalH = sigTable.offsetHeight || 115;
+    var cap = _gifCaptureCssSize(captureEl);
+    var naturalW = cap.w;
+    var naturalH = cap.h;
 
     const gif = GIFEncoder();
     let cw = 0;
@@ -1128,7 +1180,7 @@ async function exportPreviewGif() {
       await new Promise(function (resolve) {
         requestAnimationFrame(function () { requestAnimationFrame(resolve); });
       });
-      let canvas = await html2canvas(sigTable, {
+      let canvas = await html2canvas(captureEl, {
         backgroundColor: '#ffffff',
         scale: supersample,
         logging: false,
@@ -1149,6 +1201,9 @@ async function exportPreviewGif() {
       }
       const ctx = canvas.getContext('2d');
       const im = ctx.getImageData(0, 0, cw, ch);
+      if (typeof prequantize === 'function') {
+        prequantize(im.data, { roundRGB: 1 });
+      }
       const palette = quantize(im.data, 256);
       const index = applyPalette(im.data, palette);
       const isLast = (i === openFrames - 1);
@@ -1161,13 +1216,15 @@ async function exportPreviewGif() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'superenge-assinatura-animada.gif';
+    a.download = brandOnly ? 'superenge-logo-coluna-animada.gif' : 'superenge-assinatura-animada.gif';
     a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast('✓ GIF baixado. No Outlook: Inserir → Imagens — não use Anexar.');
+    toast(brandOnly
+      ? '✓ GIF da coluna da marca baixado. Aloje o ficheiro e use a URL HTTPS no src da imagem.'
+      : '✓ GIF baixado. No Outlook: Inserir → Imagens — não use Anexar.');
   } catch (err) {
     console.error(err);
     toast('Falha ao gerar o GIF: ' + (err && err.message ? err.message : 'rede ou bloqueio de script.'));
@@ -1179,7 +1236,7 @@ async function exportPreviewGif() {
     /* Força rebuild para garantir DOM limpo e animação reiniciada do início. */
     lastStructureKey = '';
     performRender();
-    if (btn) btn.disabled = false;
+    document.querySelectorAll('.btn-gif-export').forEach(function (b) { b.disabled = false; });
   }
 }
 

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Superenge — Assinatura (v2)</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="description" content="Assinatura de e-mail Superenge — visualização v2 com animação da logo e selos.">
+<style>
+:root{
+  --navy:#003399;
+  --navy-deep:#050c42;
+  --mid-blue:#4a5fa1;
+  --green:#4ba047;
+  --green-dark:#3d8a3a;
+  --text:#18222e;
+  --mid:#526070;
+  --muted:#8da0b0;
+  --border:#d8e4ee;
+  --bg:#eef3fb;
+  --white:#ffffff;
+  --r:12px;
+  --rl:18px;
+  --sh-sm:0 1px 3px rgba(5,12,66,.07),0 2px 8px rgba(5,12,66,.05);
+  --sh-md:0 4px 14px rgba(5,12,66,.10),0 14px 40px rgba(5,12,66,.10);
+  --tr:.18s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{
+  font-family:'Source Sans Pro','Segoe UI',system-ui,sans-serif;
+  font-size:14px;color:var(--text);
+  background:var(--bg);
+  background-image:radial-gradient(circle,rgba(5,12,66,.07) 1px,transparent 1px);
+  background-size:26px 26px;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+}
+
+/* ─── STAGE (centro da página, mostra a assinatura) ─────────── */
+.stage{
+  flex:1;
+  display:flex;align-items:center;justify-content:center;
+  padding:28px 18px;
+  min-height:100vh;
+}
+.stage-frame{
+  background:var(--white);
+  border-radius:var(--rl);
+  box-shadow:var(--sh-md);
+  padding:36px clamp(20px,4vw,48px);
+  max-width:560px;
+  width:100%;
+  overflow:hidden;
+  position:relative;
+}
+.stage-frame::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--green) 0%,var(--green) 26%,#1897e8 26%,#1897e8 100%);
+  border-radius:var(--rl) var(--rl) 0 0;
+}
+
+/* ─── PREVIEW / SIGNATURE WRAPPER ───────────────────────────── */
+#preview{
+  width:100%;
+  display:flex;justify-content:center;
+}
+.sig-preview-viewport{
+  width:100%;
+  display:flex;justify-content:center;
+  line-height:1;
+  --sig-curtain-cycle:8s;
+}
+.sig-preview-scaler{
+  display:inline-block;
+  vertical-align:top;
+  transform-origin:top center;
+  line-height:normal;
+  flex-shrink:0;
+}
+
+/* Mesma técnica do index.html: cortina via overlay com translate3d (GPU) */
+#preview .sig-brand-curtain{
+  display:block;position:relative;overflow:hidden;
+  width:100%;min-width:0;box-sizing:border-box;
+}
+#preview .sig-brand-curtain-inner{display:inline-block;vertical-align:top;}
+#preview .sig-brand-curtain::after{
+  content:'';position:absolute;inset:0;
+  background:#ffffff;pointer-events:none;z-index:2;
+  transform:translate3d(0,0,0);
+  will-change:transform;backface-visibility:hidden;
+  animation:brandPreviewMotion var(--sig-curtain-cycle,8s) cubic-bezier(.72,.02,.28,.98) infinite;
+}
+#preview .sig-brand-curtain.is-static::after{
+  animation:none;
+  transform:translate3d(var(--sig-curtain-pos,0%),0,0);
+}
+#preview.is-offscreen .sig-brand-curtain::after{animation-play-state:paused;}
+#preview .superenge-sig > tbody > tr:first-child > td:first-child,
+#preview .superenge-sig > tr:first-child > td:first-child{
+  overflow:visible;vertical-align:middle;
+}
+#preview .sig-brand-curtain-inner > table[role="presentation"]{
+  display:inline-block;vertical-align:middle;
+}
+#preview .superenge-sig{
+  display:table;
+  width:465px;max-width:none;
+  table-layout:fixed;
+}
+#preview .superenge-sig>tbody>tr>td:first-child,
+#preview .superenge-sig>tr>td:first-child{
+  width:130px!important;max-width:130px;box-sizing:border-box;
+}
+#preview .superenge-sig>tbody>tr>td:last-child,
+#preview .superenge-sig>tr>td:last-child{
+  width:auto;word-wrap:break-word;overflow-wrap:anywhere;
+}
+#preview .superenge-sig > tbody > tr:first-child > td:first-child img[alt="Superenge"],
+#preview .superenge-sig > tr:first-child > td:first-child img[alt="Superenge"]{
+  width:110px;max-width:110px;height:69px;object-fit:contain;
+}
+
+@keyframes brandPreviewMotion{
+  0%,100%{ transform: translate3d(0%,0,0); }
+  28%,72%{ transform: translate3d(100%,0,0); }
+}
+@media (max-width:640px){
+  #preview .sig-brand-curtain::after{ animation-duration: 10s; }
+}
+@media (prefers-reduced-motion:reduce){
+  #preview .sig-brand-curtain::after{display:none;animation:none;}
+}
+@media (hover:hover) and (pointer:fine){
+  #preview a img{transition:transform .2s ease, opacity .2s ease;}
+  #preview a:hover img{transform:scale(1.03);opacity:.9;}
+}
+
+/* ─── FAB + PAINEL DE EDIÇÃO ────────────────────────────────── */
+.fab{
+  position:fixed;top:18px;right:18px;z-index:80;
+  display:flex;align-items:center;gap:8px;
+  background:var(--navy-deep);color:#fff;
+  border:none;border-radius:999px;
+  padding:10px 16px 10px 14px;
+  font-family:inherit;font-size:12.5px;font-weight:600;letter-spacing:.02em;
+  cursor:pointer;box-shadow:0 6px 18px rgba(5,12,66,.28);
+  transition:transform var(--tr),box-shadow var(--tr),background var(--tr);
+}
+.fab:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(5,12,66,.34);}
+.fab:active{transform:translateY(0) scale(.97);}
+.fab svg{width:14px;height:14px;flex-shrink:0;}
+
+.panel-backdrop{
+  position:fixed;inset:0;background:rgba(5,12,66,.32);
+  opacity:0;pointer-events:none;
+  transition:opacity .22s ease;z-index:90;
+  backdrop-filter:blur(2px);
+}
+.panel-backdrop.on{opacity:1;pointer-events:auto;}
+
+.panel{
+  position:fixed;top:0;right:0;height:100vh;width:340px;max-width:92vw;
+  background:#fff;box-shadow:-12px 0 40px rgba(5,12,66,.22);
+  transform:translateX(100%);
+  transition:transform .26s cubic-bezier(.4,0,.2,1);
+  z-index:100;display:flex;flex-direction:column;
+}
+.panel.on{transform:translateX(0);}
+.panel-hdr{
+  padding:16px 18px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:linear-gradient(128deg,#040b38 0%,#081664 50%,#0d2190 100%);
+  color:#fff;
+}
+.panel-hdr h2{
+  font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+}
+.panel-close{
+  background:rgba(255,255,255,.12);border:none;color:#fff;
+  width:30px;height:30px;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--tr);
+}
+.panel-close:hover{background:rgba(255,255,255,.22);}
+.panel-close svg{width:14px;height:14px;}
+.panel-body{padding:16px 18px;overflow:auto;flex:1;}
+.field{margin-bottom:11px;}
+.field label{
+  display:block;font-size:10.5px;font-weight:600;
+  color:var(--mid);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;
+}
+.field input{
+  width:100%;padding:8px 11px;
+  border:1.5px solid #d4e0ec;border-radius:8px;
+  font-size:13px;font-family:inherit;color:var(--text);
+  background:#f6f9fd;
+  transition:border-color var(--tr),box-shadow var(--tr),background var(--tr);
+}
+.field input:focus{
+  outline:none;border-color:var(--navy);background:var(--white);
+  box-shadow:0 0 0 3px rgba(0,51,153,.10);
+}
+.toggles{margin-top:6px;}
+.trow{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 0;border-bottom:1px solid rgba(216,228,238,.6);
+}
+.trow:last-child{border-bottom:none;}
+.trow span{font-size:12.5px;color:var(--text);}
+.tog{position:relative;width:34px;height:19px;cursor:pointer;flex-shrink:0;}
+.tog input{display:none;}
+.tog .sl{position:absolute;inset:0;background:#c4d0dc;border-radius:10px;transition:background var(--tr);}
+.tog .sl::before{
+  content:'';position:absolute;width:13px;height:13px;
+  left:3px;top:3px;background:var(--white);border-radius:50%;
+  transition:transform var(--tr);box-shadow:0 1px 4px rgba(0,0,0,.18);
+}
+.tog input:checked + .sl{background:var(--green);}
+.tog input:checked + .sl::before{transform:translateX(15px);}
+
+.panel-foot{
+  padding:14px 18px 18px;border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:8px;
+  background:#fafcff;
+}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 14px;border:none;border-radius:9px;
+  font-family:inherit;font-size:12.5px;font-weight:600;letter-spacing:.01em;
+  cursor:pointer;transition:all var(--tr);
+}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none;pointer-events:none;}
+.btn svg{width:13px;height:13px;flex-shrink:0;}
+.btn-g{background:linear-gradient(130deg,var(--green-dark) 0%,var(--green) 100%);color:#fff;box-shadow:0 2px 8px rgba(75,160,71,.26);}
+.btn-g:hover{box-shadow:0 4px 16px rgba(75,160,71,.36);transform:translateY(-1px);}
+.btn-p{background:linear-gradient(130deg,#0c1d8e 0%,#1735c4 100%);color:#fff;box-shadow:0 2px 8px rgba(12,29,142,.28);}
+.btn-p:hover{box-shadow:0 4px 16px rgba(12,29,142,.38);transform:translateY(-1px);}
+.btn-o{background:#fff;color:var(--mid);border:1.5px solid var(--border);}
+.btn-o:hover{background:#f2f7fd;border-color:#b8cada;color:var(--text);}
+
+.panel-section-label{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.13em;color:var(--navy-deep);
+  margin:14px 0 8px;display:flex;align-items:center;gap:7px;
+}
+.panel-section-label:first-child{margin-top:0;}
+
+/* ─── TOAST ─────────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:22px;left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:var(--navy-deep);color:var(--white);
+  padding:10px 22px;border-radius:8px;
+  font-size:12.5px;font-weight:600;
+  box-shadow:0 6px 20px rgba(5,12,66,.28);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s;
+  opacity:0;pointer-events:none;z-index:999;
+  border-left:3px solid var(--green);white-space:nowrap;
+}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* ─── LINK PARA O GERADOR ───────────────────────────────────── */
+.back-link{
+  position:fixed;top:22px;left:18px;z-index:80;
+  font-size:12px;font-weight:600;color:var(--mid);
+  text-decoration:none;display:flex;align-items:center;gap:6px;
+  padding:8px 12px;border-radius:8px;
+  background:rgba(255,255,255,.7);backdrop-filter:blur(8px);
+  border:1px solid rgba(216,228,238,.7);
+  transition:color var(--tr),background var(--tr);
+}
+.back-link:hover{color:var(--navy);background:#fff;}
+.back-link svg{width:12px;height:12px;}
+
+/* ─── RESPONSIVE ────────────────────────────────────────────── */
+@media(max-width:640px){
+  .stage{padding:18px 10px;}
+  .stage-frame{padding:26px 16px;}
+  .toast{
+    left:12px;right:12px;bottom:14px;
+    transform:translateY(60px);
+    width:auto;white-space:normal;text-align:center;
+  }
+  .toast.on{transform:translateY(0);}
+  .fab{padding:9px 14px 9px 12px;font-size:12px;top:14px;right:14px;}
+  .fab .fab-label{display:none;}
+  .back-link{top:16px;left:12px;}
+  .back-link span{display:none;}
+}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-link" title="Voltar ao gerador">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12L6 8l4-4"/></svg>
+  <span>Gerador</span>
+</a>
+
+<button class="fab" id="fabEdit" type="button" aria-label="Editar dados da assinatura">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11.5 2.5l2 2-8 8H3.5v-2l8-8z"/></svg>
+  <span class="fab-label">Editar dados</span>
+</button>
+
+<main class="stage">
+  <div class="stage-frame">
+    <div id="preview"></div>
+  </div>
+</main>
+
+<div class="panel-backdrop" id="panelBackdrop"></div>
+<aside class="panel" id="panel" role="dialog" aria-label="Editar dados da assinatura">
+  <header class="panel-hdr">
+    <h2>Assinatura · v2</h2>
+    <button class="panel-close" id="panelClose" type="button" aria-label="Fechar">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l10 10M13 3L3 13"/></svg>
+    </button>
+  </header>
+
+  <div class="panel-body">
+    <div class="panel-section-label">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="#4ba047"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zM8 9a5 5 0 00-5 5h10a5 5 0 00-5-5z"/></svg>
+      Dados do colaborador
+    </div>
+    <div class="field"><label>Nome completo</label><input type="text" id="nome" value="LAÍSA ASSIS"></div>
+    <div class="field"><label>Cargo</label><input type="text" id="cargo" value="Diretora-Executiva"></div>
+    <div class="field"><label>E-mail</label><input type="email" id="email" value="laisa@superenge.com.br"></div>
+    <div class="field"><label>Celular</label><input type="text" id="celular" value="31 99405-6207"></div>
+    <div class="field"><label>Telefone fixo</label><input type="text" id="fixo" value="31 3466-5371"></div>
+    <div class="field"><label>Website</label><input type="text" id="website" value="www.superenge.com.br"></div>
+
+    <div class="panel-section-label" style="margin-top:18px;">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="#4ba047"><path d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v9a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12.5v-9zm7 7a.5.5 0 001 0V5.5a.5.5 0 00-1 0v5z"/></svg>
+      Exibição
+    </div>
+    <div class="toggles">
+      <div class="trow"><span>Slogan</span><label class="tog"><input type="checkbox" id="showSlogan" checked><span class="sl"></span></label></div>
+      <div class="trow"><span>Selos ISO / PBQP-H</span><label class="tog"><input type="checkbox" id="showSeals" checked><span class="sl"></span></label></div>
+      <div class="trow"><span>Telefone fixo</span><label class="tog"><input type="checkbox" id="showFixo" checked><span class="sl"></span></label></div>
+    </div>
+  </div>
+
+  <div class="panel-foot">
+    <button class="btn btn-g" type="button" id="btnCopy">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 8.5l3.5 3.5 7.5-8"/></svg>
+      Copiar para colar
+    </button>
+    <button class="btn btn-p" type="button" id="btnCopyHtml">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="9" height="12" rx="1.5"/><path d="M5 1h7.5A1.5 1.5 0 0114 2.5V13"/></svg>
+      Copiar HTML
+    </button>
+    <button class="btn btn-o btn-gif-export" type="button" id="btnGif">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm11 0H3v7h10V3zM5 13.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5z"/></svg>
+      GIF (assinatura inteira)
+    </button>
+    <button class="btn btn-o btn-gif-export" type="button" id="btnGifBrand">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm11 0H3v7h10V3zM5 13.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5z"/></svg>
+      GIF (só logo / coluna)
+    </button>
+  </div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<!-- imagens partilhadas (logo + selos) extraídas de index.html -->
+<script src="assets/sig-images.js"></script>
+<script>
+/* Atalho local para o objeto de imagens — mesma forma usada no index.html. */
+const A = window.SUPERENGE_SIG_IMAGES;
+if (!A || !A.logo || !A.iso || !A.pbqp){
+  console.error('Imagens da assinatura não carregaram. Verifique assets/sig-images.js');
+}
+
+const SIG_FF = "'Source Sans Pro',Arial,Helvetica,sans-serif";
+const SIG_LAYOUT = Object.freeze({
+  maxW: 465,
+  brandColW: 130,
+  logoW: 110,
+  logoH: 69,
+  padBrandRight: 8,
+  padTextLeft: 11,
+  sealIsoW: 42,
+  sealIsoH: 29,
+  sealPbqpW: 38,
+  sealPbqpH: 27,
+  sealMarginL: -2,
+  fontNome: 13,
+  fontCargo: 10,
+  fontBody: 11,
+  fontSlogan: 8,
+});
+const SIG_NAVY = "#003399";
+const SIG_MID_BLUE = "#4a5fa1";
+const SIG_GREEN = "#4d924d";
+/** Mesmo URL que index.html — raw.githubusercontent.com (compatível com colar no Gmail). */
+const SIG_EMAIL_IMAGE_BASE = 'https://raw.githubusercontent.com/marianamarques01/superenge/main/assinatura-email/';
+const SIG_EMAIL_LOGO_COLUMN_GIF_URL = SIG_EMAIL_IMAGE_BASE + 'superenge-v2-logo-coluna-animada.gif';
+const SIG_EMAIL_BRAND_GIF_INCLUDES_SEALS = true;
+const SIG_EMAIL_BRAND_GIF_PX_W = 122;
+const SIG_EMAIL_BRAND_GIF_PX_H = 103;
+const GIF_CAPTURE_SUPERSAMPLE = 5;
+const GIF_CAPTURE_SUPERSAMPLE_BRAND = 7;
+
+function V(){
+  return {
+    nome:   document.getElementById('nome').value.trim(),
+    cargo:  document.getElementById('cargo').value.trim(),
+    cel:    document.getElementById('celular').value.trim(),
+    fixo:   document.getElementById('fixo').value.trim(),
+    email:  document.getElementById('email').value.trim(),
+    web:    document.getElementById('website').value.trim(),
+    slogan: document.getElementById('showSlogan').checked,
+    seals:  document.getElementById('showSeals').checked,
+    showFixo: document.getElementById('showFixo').checked,
+  };
+}
+
+function phones(v){
+  const fz = SIG_LAYOUT.fontBody;
+  const sep = '<span style="color:#003399;padding:0 4px;">|</span>';
+  const link = (t) => `<a href="tel:+55${t.replace(/[\s-]/g,'')}" style="font-family:${SIG_FF};font-size:${fz}px;color:#003399;text-decoration:none;white-space:nowrap;">${t}</a>`;
+  let p = [link(v.cel)];
+  if (v.showFixo && v.fixo) p.push(link(v.fixo));
+  return p.join(sep);
+}
+
+function sealsBlock(v, m){
+  if (!v.seals) return '';
+  const top = m || '6px';
+  return `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:${top} auto 0;"><tr>
+      <td style="padding:0 5px 0 0;vertical-align:middle;"><img src="${A.iso}" alt="ISO 9001" width="${SIG_LAYOUT.sealIsoW}" height="${SIG_LAYOUT.sealIsoH}" style="display:block;border:0;width:${SIG_LAYOUT.sealIsoW}px;height:${SIG_LAYOUT.sealIsoH}px;margin-left:${SIG_LAYOUT.sealMarginL}px;"></td>
+      <td style="padding:0;vertical-align:middle;"><img src="${A.pbqp}" alt="PBQP-H" width="${SIG_LAYOUT.sealPbqpW}" height="${SIG_LAYOUT.sealPbqpH}" style="display:block;border:0;width:${SIG_LAYOUT.sealPbqpW}px;height:${SIG_LAYOUT.sealPbqpH}px;"></td>
+    </tr></table>`;
+}
+
+function sloganRow(padTop){
+  const fs = SIG_LAYOUT.fontSlogan;
+  return `<tr><td style="padding:${padTop} 0 0;"><span style="font-family:${SIG_FF};font-size:${fs}px;color:${SIG_GREEN};font-weight:400;letter-spacing:.06em;line-height:1.32;text-transform:uppercase;">CONSTRUÍMOS CONFIANÇA, ENTREGAMOS QUALIDADE</span></td></tr>`;
+}
+
+function sigBrandColumnCellStyleV2(L, forEmail, logoSrc, rbg){
+  return 'width:' + L.brandColW + 'px;min-width:' + L.brandColW + 'px;vertical-align:middle;padding:0 ' + L.padBrandRight + 'px 0 0;border-right:1px solid #e0e0e0;text-align:center;' + rbg;
+}
+function sigBrandLogoLinkStyleV2(forEmail, logoSrc){
+  return 'text-decoration:none;display:block;';
+}
+
+function sigBrandLogoImgV2(logoSrc, forEmail, L){
+  const colGif = forEmail && logoSrc === SIG_EMAIL_LOGO_COLUMN_GIF_URL;
+  if (colGif){
+    const w = SIG_EMAIL_BRAND_GIF_PX_W;
+    const h = SIG_EMAIL_BRAND_GIF_PX_H;
+    return (
+      '<img src="' + logoSrc + '" alt="Superenge" width="' + w + '" height="' + h + '" border="0" ' +
+      'style="display:block;border:0;width:' + w + 'px;height:' + h + 'px;margin:0 auto;">'
+    );
+  }
+  return '<img src="' + logoSrc + '" alt="Superenge" width="' + L.logoW + '" height="' + L.logoH + '" style="display:block;border:0;width:' + L.logoW + 'px;height:' + L.logoH + 'px;margin:0 auto;">';
+}
+
+/* Layout V1 (compacto) — coincide com o visual da imagem de referência. */
+function buildSignature(v, opts){
+  const forEmail = !!(opts && opts.forEmail);
+  const nm = v.nome.toLocaleUpperCase('pt-BR');
+  const cr = v.cargo.toLocaleUpperCase('pt-BR');
+  const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
+  const g1 = '3px';
+  const gWeb = '3px';
+  const gSlogan = '5px';
+  const logoSrc = forEmail ? SIG_EMAIL_LOGO_COLUMN_GIF_URL : A.logo;
+  const skipSealRow = forEmail && SIG_EMAIL_BRAND_GIF_INCLUDES_SEALS && logoSrc === SIG_EMAIL_LOGO_COLUMN_GIF_URL;
+  const sBelow = skipSealRow ? '' : sealsBlock(v, '5px');
+  const sloganBlock = v.slogan ? sloganRow(gSlogan) : '';
+  const L = SIG_LAYOUT;
+  const tw = forEmail ? `max-width:${L.maxW}px;width:${L.maxW}px;` : `max-width:${L.maxW}px;width:100%;`;
+  const rbg = forEmail ? 'background-color:#ffffff;' : '';
+  const rootBgAttr = forEmail ? ' bgcolor="#ffffff"' : '';
+  const inner = `<table class="superenge-sig" data-sig-version="2" role="presentation" cellpadding="0" cellspacing="0" border="0" width="${L.maxW}"${rootBgAttr} style="border-collapse:collapse;font-family:${SIG_FF};${rbg}${tw}">
+<tr>
+  <td width="${L.brandColW}" style="${sigBrandColumnCellStyleV2(L, forEmail, logoSrc, rbg)}">
+    <a href="https://www.superenge.com.br" target="_blank" rel="noopener" style="${sigBrandLogoLinkStyleV2(forEmail, logoSrc)}">
+      ${sigBrandLogoImgV2(logoSrc, forEmail, L)}
+    </a>
+    ${sBelow}
+  </td>
+  <td style="vertical-align:middle;padding:0 0 0 ${L.padTextLeft}px;${rbg}">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+      <tr><td><strong data-sig="nome" style="font-family:${SIG_FF};font-size:${L.fontNome}px;color:${SIG_NAVY};font-weight:700;letter-spacing:.04em;line-height:1.12;text-transform:uppercase;">${nm}</strong></td></tr>
+      <tr><td style="padding:${g1} 0 0;"><span data-sig="cargo" style="font-family:${SIG_FF};font-size:${L.fontCargo}px;color:${SIG_MID_BLUE};font-weight:400;letter-spacing:.14em;line-height:1.22;text-transform:uppercase;">${cr}</span></td></tr>
+      <tr><td style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">
+        <a data-sig="email" href="mailto:${v.email}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;">${v.email}</a>
+      </td></tr>
+      <tr><td data-sig="phones" style="padding:${g1} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.55;">${phones(v)}</td></tr>
+      <tr><td style="padding:${gWeb} 0 0;font-family:${SIG_FF};font-size:${L.fontBody}px;color:${SIG_NAVY};line-height:1.28;">
+        <a data-sig="web" href="https://${host}" style="font-size:${L.fontBody}px;color:${SIG_NAVY};text-decoration:none;font-weight:400;">${host}</a>
+      </td></tr>
+      ${sloganBlock}
+    </table>
+  </td>
+</tr>
+</table>`;
+  if (!forEmail) return inner;
+  return (
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" ' +
+    'style="border-collapse:collapse;background-color:#ffffff;mso-line-height-rule:exactly;">' +
+    '<tr><td bgcolor="#ffffff" style="background-color:#ffffff;padding:0;mso-line-height-rule:exactly;' +
+    'forced-color-adjust:none;-webkit-print-color-adjust:exact;color-scheme:only light;">' +
+    inner + '</td></tr></table>'
+  );
+}
+
+function buildSignaturePlain(v){
+  const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
+  const lines = [];
+  if (v.nome) lines.push(v.nome);
+  if (v.cargo) lines.push(v.cargo);
+  if (v.email) lines.push(v.email);
+  const tel = [];
+  if (v.cel) tel.push(v.cel);
+  if (v.showFixo && v.fixo) tel.push(v.fixo);
+  if (tel.length) lines.push(tel.join(' | '));
+  if (host) lines.push(host);
+  if (v.slogan) lines.push('CONSTRUÍMOS CONFIANÇA, ENTREGAMOS QUALIDADE');
+  return lines.join('\n');
+}
+
+/* ─── Wrap da coluna brand para a animação de cortina ─────── */
+function wrapPreviewBrandColumn(){
+  const td =
+    document.querySelector('#preview .superenge-sig > tbody > tr:first-child > td:first-child') ||
+    document.querySelector('#preview .superenge-sig > tr:first-child > td:first-child');
+  if (!td || td.querySelector(':scope > .sig-brand-curtain')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'sig-brand-curtain';
+  const inner = document.createElement('div');
+  inner.className = 'sig-brand-curtain-inner';
+  while (td.firstChild) inner.appendChild(td.firstChild);
+  wrap.appendChild(inner);
+  td.appendChild(wrap);
+}
+
+function applySigPreviewScale(){
+  const preview = document.getElementById('preview');
+  if (!preview) return;
+  const vp = preview.querySelector('.sig-preview-viewport');
+  const sc = preview.querySelector('.sig-preview-scaler');
+  const table = preview.querySelector('.superenge-sig');
+  if (!vp || !sc || !table) return;
+  const avail = Math.max(100, vp.clientWidth);
+  const natural = table.offsetWidth || 1;
+  const th = table.offsetHeight;
+  const s = Math.min(1, avail / natural);
+  if (s < 0.998){
+    sc.style.transform = 'scale(' + s + ')';
+    sc.style.transformOrigin = 'top center';
+    sc.style.marginBottom = ((1 - s) * -th) + 'px';
+  } else {
+    sc.style.transform = '';
+    sc.style.marginBottom = '';
+  }
+}
+
+let sigScaleObserver = null;
+let sigScaleRaf = 0;
+function scheduleApplyScale(){
+  if (sigScaleRaf) return;
+  sigScaleRaf = requestAnimationFrame(function(){
+    sigScaleRaf = 0;
+    applySigPreviewScale();
+  });
+}
+function initSigPreviewScale(){
+  const wrap = document.querySelector('.stage-frame');
+  if (!wrap) return;
+  if (sigScaleObserver) sigScaleObserver.disconnect();
+  if (typeof ResizeObserver !== 'undefined'){
+    sigScaleObserver = new ResizeObserver(scheduleApplyScale);
+    sigScaleObserver.observe(wrap);
+  }
+  window.addEventListener('resize', scheduleApplyScale, { passive: true });
+}
+
+function initSigVisibilityPause(){
+  const preview = document.getElementById('preview');
+  if (!preview || typeof IntersectionObserver === 'undefined') return;
+  const io = new IntersectionObserver(function(entries){
+    for (var i = 0; i < entries.length; i++){
+      var e = entries[i];
+      if (e.isIntersecting) preview.classList.remove('is-offscreen');
+      else preview.classList.add('is-offscreen');
+    }
+  }, { threshold: 0, rootMargin: '200px' });
+  io.observe(preview);
+}
+
+/* In-place patch para evitar reiniciar a animação ao digitar. */
+function structureKey(v){
+  return [v.slogan?'1':'0', v.seals?'1':'0', (v.showFixo && v.fixo)?'1':'0'].join('|');
+}
+let lastStructureKey = '';
+
+function patchSignature(v){
+  const root = document.querySelector('#preview .superenge-sig');
+  if (!root) return false;
+  const setText = function(sel, text){
+    const el = root.querySelector(sel);
+    if (el && el.textContent !== text) el.textContent = text;
+  };
+  const setAttr = function(sel, attr, val){
+    const el = root.querySelector(sel);
+    if (el && el.getAttribute(attr) !== val) el.setAttribute(attr, val);
+  };
+  setText('[data-sig="nome"]', v.nome.toLocaleUpperCase('pt-BR'));
+  setText('[data-sig="cargo"]', v.cargo.toLocaleUpperCase('pt-BR'));
+  setText('[data-sig="email"]', v.email);
+  setAttr('[data-sig="email"]', 'href', 'mailto:' + v.email);
+  const phonesEl = root.querySelector('[data-sig="phones"]');
+  if (phonesEl){
+    const newPhones = phones(v);
+    if (phonesEl.innerHTML !== newPhones) phonesEl.innerHTML = newPhones;
+  }
+  const host = v.web.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  setText('[data-sig="web"]', host);
+  setAttr('[data-sig="web"]', 'href', 'https://' + host);
+  return true;
+}
+
+let renderDebounce = null;
+function performRender(){
+  const v = V();
+  const sk = structureKey(v);
+  if (sk === lastStructureKey && document.querySelector('#preview .superenge-sig')){
+    patchSignature(v);
+    scheduleApplyScale();
+    return;
+  }
+  lastStructureKey = sk;
+  const preview = document.getElementById('preview');
+  preview.innerHTML =
+    '<div class="sig-preview-viewport"><div class="sig-preview-scaler">' + buildSignature(v) + '</div></div>';
+  wrapPreviewBrandColumn();
+  scheduleApplyScale();
+  if (document.fonts && document.fonts.ready && !performRender._fontsHooked){
+    performRender._fontsHooked = true;
+    document.fonts.ready.then(scheduleApplyScale);
+  }
+}
+function render(){
+  if (renderDebounce) clearTimeout(renderDebounce);
+  renderDebounce = setTimeout(function(){
+    renderDebounce = null;
+    performRender();
+  }, 220);
+}
+
+/* ─── Toast ─────────────────────────────────────────────────── */
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), 2400);
+}
+
+/* ─── Copy / GIF ────────────────────────────────────────────── */
+function copyAndPaste(){
+  const v = V();
+  const html = buildSignature(v, { forEmail: true });
+  const plain = buildSignaturePlain(v);
+  if (window.ClipboardItem){
+    navigator.clipboard.write([
+      new ClipboardItem({
+        'text/html':  new Blob([html], {type:'text/html'}),
+        'text/plain': new Blob([plain], {type:'text/plain'}),
+      })
+    ])
+    .then(() => toast('✓ Assinatura copiada! Cole no Gmail ou Outlook.'))
+    .catch(() => _copyFallback(html));
+  } else {
+    _copyFallback(html);
+  }
+}
+function copyHTML(){
+  const html = buildSignature(V(), { forEmail: true });
+  navigator.clipboard.writeText(html)
+    .then(() => toast('✓ HTML copiado para a área de transferência.'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = html;
+      ta.style.cssText = 'position:fixed;top:-9999px;';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('✓ HTML copiado!');
+    });
+}
+function _copyFallback(html){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  tmp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+  document.body.appendChild(tmp);
+  const r = document.createRange();
+  r.selectNodeContents(tmp);
+  const s = window.getSelection();
+  s.removeAllRanges(); s.addRange(r);
+  document.execCommand('copy');
+  s.removeAllRanges();
+  document.body.removeChild(tmp);
+  toast('✓ Assinatura copiada! Cole no Gmail ou Outlook.');
+}
+
+/* ─── Export GIF (mesma técnica do index.html) ─────────────── */
+function _normalizeFrameCanvas(src, w, h){
+  if (src.width === w && src.height === h) return src;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const cx = c.getContext('2d');
+  cx.imageSmoothingEnabled = true;
+  cx.imageSmoothingQuality = 'high';
+  cx.clearRect(0,0,w,h);
+  cx.drawImage(src,0,0,w,h);
+  return c;
+}
+function _downscaleCanvasToCssPx(src, cssW, cssH){
+  const w = Math.max(1, Math.round(cssW));
+  const h = Math.max(1, Math.round(cssH));
+  if (src.width === w && src.height === h) return src;
+  let cur = src;
+  while (cur.width > w || cur.height > h){
+    const nw = Math.max(w, Math.round(cur.width * 0.5));
+    const nh = Math.max(h, Math.round(cur.height * 0.5));
+    if (nw === cur.width && nh === cur.height) break;
+    const next = document.createElement('canvas');
+    next.width = nw; next.height = nh;
+    const nx = next.getContext('2d');
+    nx.imageSmoothingEnabled = true;
+    nx.imageSmoothingQuality = 'high';
+    nx.drawImage(cur,0,0,cur.width,cur.height,0,0,nw,nh);
+    cur = next;
+    if (nw === w && nh === h) break;
+  }
+  if (cur.width !== w || cur.height !== h){
+    const last = document.createElement('canvas');
+    last.width = w; last.height = h;
+    const lx = last.getContext('2d');
+    lx.imageSmoothingEnabled = true;
+    lx.imageSmoothingQuality = 'high';
+    lx.drawImage(cur,0,0,cur.width,cur.height,0,0,w,h);
+    cur = last;
+  }
+  return cur;
+}
+function _applyDataUriToPreviewImages(scopeEl){
+  scopeEl.querySelectorAll('img').forEach(function(img){
+    var alt = (img.getAttribute('alt') || '').trim();
+    if (alt === 'Superenge') img.src = A.logo;
+    else if (alt === 'ISO 9001') img.src = A.iso;
+    else if (alt === 'PBQP-H') img.src = A.pbqp;
+  });
+}
+function _waitImagesLoaded(scopeEl){
+  var imgs = scopeEl.querySelectorAll('img');
+  return Promise.all(Array.prototype.map.call(imgs, function(img){
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise(function(resolve){
+      img.onload = function(){ resolve(); };
+      img.onerror = function(){ resolve(); };
+    });
+  }));
+}
+function _curtainMaxWidth(t){
+  if (t <= 0) return 0;
+  if (t >= 0.15) return 100;
+  return (t / 0.15) * 100;
+}
+function _gifCaptureCssSize(el){
+  var br = el.getBoundingClientRect();
+  var w = Math.max(1, Math.round(br.width));
+  var h = Math.max(1, Math.round(br.height));
+  if (w < 2 || h < 2){
+    w = Math.max(1, Math.round(el.offsetWidth));
+    h = Math.max(1, Math.round(el.offsetHeight));
+  }
+  return { w: w, h: h };
+}
+
+async function exportPreviewGif(opts){
+  const brandOnly = !!(opts && opts.brandOnly);
+  const sigTable = document.querySelector('#preview .superenge-sig');
+  const scaler = document.querySelector('#preview .sig-preview-scaler');
+  const viewport = document.querySelector('#preview .sig-preview-viewport');
+  const curtain = document.querySelector('#preview .sig-brand-curtain');
+  if (!sigTable || !scaler || !viewport || !curtain){
+    toast('Aguarde o preview carregar antes de exportar o GIF.');
+    return;
+  }
+  const captureEl = brandOnly ? curtain : sigTable;
+  document.querySelectorAll('.btn-gif-export').forEach(function(b){ b.disabled = true; });
+
+  const save = {
+    transform: scaler.style.transform,
+    marginBottom: scaler.style.marginBottom,
+  };
+
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const html2canvasMod = await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js');
+    const html2canvas = html2canvasMod.default || html2canvasMod;
+    const ge = await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js');
+    const GIFEncoder = ge.GIFEncoder || ge.default;
+    const quantize = ge.quantize;
+    const applyPalette = ge.applyPalette;
+    const prequantize = ge.prequantize;
+    if (typeof GIFEncoder !== 'function' || typeof quantize !== 'function' || typeof applyPalette !== 'function'){
+      throw new Error('Bibliotecas GIF não carregaram');
+    }
+
+    const EXPORT_OPEN_S = 2.25;
+    const EXPORT_FPS = 30;
+    const HOLD_MS = 5000;
+    const supersample = brandOnly ? GIF_CAPTURE_SUPERSAMPLE_BRAND : GIF_CAPTURE_SUPERSAMPLE;
+    const openFrames = Math.max(2, Math.round(EXPORT_OPEN_S * EXPORT_FPS));
+    const frameDelayMs = Math.max(1, Math.round(1000 / EXPORT_FPS));
+    toast('Gerando GIF' + (brandOnly ? ' (só coluna da marca)… ' : '… ') + openFrames + ' frames (~' + EXPORT_FPS + ' fps)');
+
+    scaler.style.transform = 'none';
+    scaler.style.marginBottom = '';
+    curtain.classList.add('is-static');
+    curtain.style.setProperty('--sig-curtain-pos', '0%');
+    void scaler.offsetHeight;
+
+    _applyDataUriToPreviewImages(captureEl);
+    await _waitImagesLoaded(captureEl);
+    void captureEl.offsetHeight;
+
+    var cap = _gifCaptureCssSize(captureEl);
+    var naturalW = cap.w;
+    var naturalH = cap.h;
+
+    const gif = GIFEncoder();
+    let cw = 0, ch = 0;
+
+    for (let i = 0; i < openFrames; i++){
+      const tNorm = openFrames <= 1 ? 1 : i / (openFrames - 1);
+      const t = tNorm * 0.15;
+      const mw = _curtainMaxWidth(t);
+      curtain.style.setProperty('--sig-curtain-pos', mw + '%');
+      void curtain.offsetHeight;
+      await new Promise(function(resolve){
+        requestAnimationFrame(function(){ requestAnimationFrame(resolve); });
+      });
+      let canvas = await html2canvas(captureEl, {
+        backgroundColor: '#ffffff',
+        scale: supersample,
+        logging: false,
+        useCORS: false,
+        allowTaint: true,
+        imageTimeout: 20000,
+        width: naturalW,
+        height: naturalH,
+        windowWidth: naturalW,
+        windowHeight: naturalH,
+      });
+      canvas = _downscaleCanvasToCssPx(canvas, naturalW, naturalH);
+      if (!cw){ cw = canvas.width; ch = canvas.height; }
+      else { canvas = _normalizeFrameCanvas(canvas, cw, ch); }
+      const ctx = canvas.getContext('2d');
+      const im = ctx.getImageData(0, 0, cw, ch);
+      if (typeof prequantize === 'function'){
+        prequantize(im.data, { roundRGB: 1 });
+      }
+      const palette = quantize(im.data, 256);
+      const index = applyPalette(im.data, palette);
+      const isLast = (i === openFrames - 1);
+      gif.writeFrame(index, cw, ch, { palette: palette, delay: isLast ? HOLD_MS : frameDelayMs });
+    }
+    gif.finish();
+    const bytes = gif.bytes();
+    const blob = new Blob([bytes], { type: 'image/gif' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = brandOnly ? 'superenge-v2-logo-coluna-animada.gif' : 'superenge-assinatura-v2.gif';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(brandOnly
+      ? '✓ GIF da coluna da marca baixado. Aloje o ficheiro e use a URL HTTPS no src da imagem.'
+      : '✓ GIF baixado. No Outlook: Inserir → Imagens.');
+  } catch (err){
+    console.error(err);
+    toast('Falha ao gerar o GIF: ' + (err && err.message ? err.message : 'erro desconhecido.'));
+  } finally {
+    scaler.style.transform = save.transform;
+    scaler.style.marginBottom = save.marginBottom;
+    curtain.classList.remove('is-static');
+    curtain.style.removeProperty('--sig-curtain-pos');
+    lastStructureKey = '';
+    performRender();
+    document.querySelectorAll('.btn-gif-export').forEach(function(b){ b.disabled = false; });
+  }
+}
+
+/* ─── Painel (FAB + drawer) ────────────────────────────────── */
+function setupPanel(){
+  const fab = document.getElementById('fabEdit');
+  const panel = document.getElementById('panel');
+  const backdrop = document.getElementById('panelBackdrop');
+  const close = document.getElementById('panelClose');
+  const open = function(){
+    panel.classList.add('on');
+    backdrop.classList.add('on');
+  };
+  const hide = function(){
+    panel.classList.remove('on');
+    backdrop.classList.remove('on');
+  };
+  fab.addEventListener('click', open);
+  close.addEventListener('click', hide);
+  backdrop.addEventListener('click', hide);
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') hide();
+  });
+}
+
+/* ─── Boot ─────────────────────────────────────────────────── */
+document.querySelectorAll('input').forEach(function(el){
+  el.addEventListener('input', render);
+  el.addEventListener('change', render);
+});
+document.getElementById('btnCopy').addEventListener('click', copyAndPaste);
+document.getElementById('btnCopyHtml').addEventListener('click', copyHTML);
+document.getElementById('btnGif').addEventListener('click', function(){ exportPreviewGif(); });
+document.getElementById('btnGifBrand').addEventListener('click', function(){ exportPreviewGif({ brandOnly: true }); });
+setupPanel();
+initSigPreviewScale();
+performRender();
+requestAnimationFrame(initSigVisibilityPause);
+</script>
+</body>
+</html>
