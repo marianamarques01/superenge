@@ -231,6 +231,11 @@ body{
   display:inline-block;
   vertical-align:middle;
 }
+/* Cortina animada: composição em camada própria reduz embaçamento subpixel ao mover o overlay. */
+#preview .sig-brand-curtain-inner img{
+  backface-visibility:hidden;
+  transform:translateZ(0);
+}
 /* Refinos só no preview — espelhar SIG_LAYOUT.maxW / brandColW / logo (ver script). */
 #preview .superenge-sig{
   display:table;
@@ -406,7 +411,7 @@ body{
       <div class="field"><label>Nome completo</label><input type="text" id="nome" value="LAÍSA ASSIS" placeholder="Ex: João Silva"></div>
       <div class="field"><label>Cargo</label><input type="text" id="cargo" value="Diretora Executiva" placeholder="Ex: Engenheiro Civil"></div>
       <div class="field"><label>Celular</label><input type="text" id="celular" value="31 99405-6207"></div>
-      <div class="field"><label>Telefone fixo</label><input type="text" id="fixo" value="(31) 3466-5371"></div>
+      <div class="field"><label>Telefone fixo</label><input type="text" id="fixo" value="31 3466-5371"></div>
       <div class="field"><label>E-mail</label><input type="email" id="email" value="laisa@superenge.com.br"></div>
       <div class="field"><label>Website</label><input type="text" id="website" value="www.superenge.com.br"></div>
     </div>
@@ -535,8 +540,8 @@ function buildSignaturePlain(v) {
     if (v.cargo) lines.push(v.cargo.toLocaleUpperCase('pt-BR'));
     if (v.email) lines.push(v.email);
     const tel = [];
-    if (v.cel) tel.push(v.cel);
-    if (v.showFixo && v.fixo) tel.push(v.fixo);
+    if (v.cel) tel.push(normalizePhoneDisplay(v.cel));
+    if (v.showFixo && v.fixo) tel.push(normalizePhoneDisplay(v.fixo));
     if (tel.length) lines.push(tel.join(' | '));
     if (host) lines.push(host);
     if (v.slogan) lines.push(SIG_SLOGAN_V3);
@@ -548,8 +553,8 @@ function buildSignaturePlain(v) {
   if (v.cargo) lines.push(v.cargo);
   if (v.email) lines.push(v.email);
   const tel = [];
-  if (v.cel) tel.push(v.cel);
-  if (v.showFixo && v.fixo) tel.push(v.fixo);
+  if (v.cel) tel.push(normalizePhoneDisplay(v.cel));
+  if (v.showFixo && v.fixo) tel.push(normalizePhoneDisplay(v.fixo));
   if (tel.length) lines.push(tel.join(' | '));
   if (host) lines.push(host);
   if (v.slogan) lines.push('CONSTRUÍMOS CONFIANÇA, ENTREGAMOS QUALIDADE');
@@ -581,11 +586,12 @@ const SIG_LAYOUT = Object.freeze({
 });
 /**
  * GIF animado: factor de supersampling do html2canvas antes de reduzir para o tamanho CSS.
- * Valores maiores = mais nitidez (especialmente após quantizar a 256 cores), mas exportação mais lenta.
+ * Valores maiores = mais nitidez após quantizar a 256 cores; exportação mais lenta e mais uso de memória.
+ * Versão completa da assinatura: menos zoom por pixel para não disparar RAM em PCs modestos.
  */
-const GIF_CAPTURE_SUPERSAMPLE = 5;
-/** Só coluna da marca: ainda mais amostras (menos banding / serrilhado no logo). */
-const GIF_CAPTURE_SUPERSAMPLE_BRAND = 7;
+const GIF_CAPTURE_SUPERSAMPLE = 8;
+/** Só coluna da marca GIF hospedado: supersampling alto + paleta multi-frame → menos bandas perto da cortina. */
+const GIF_CAPTURE_SUPERSAMPLE_BRAND = 18;
 /** Slogan do layout v3 — tom editorial (diferente de v1/v2). */
 const SIG_SLOGAN_V3 = 'Método na execução · Confiança no resultado';
 
@@ -598,13 +604,18 @@ const SIG_NAVY = "#003399";
 const SIG_MID_BLUE = "#4a5fa1";
 const SIG_GREEN = "#4d924d";
 
+/** Evita parênteses em DDD no HTML/texto da assinatura. */
+function normalizePhoneDisplay(t) {
+  return String(t || '').replace(/[()]/g, '').trim();
+}
+
 function phones(v) {
   const fz = SIG_LAYOUT.fontBody;
   const sep = '<span style="color:#003399;padding:0 4px;">|</span>';
   const plain = (t) =>
     `<span style="font-family:'Source Sans Pro',Arial,Helvetica,sans-serif;font-size:${fz}px;color:#003399;white-space:nowrap;">${t}</span>`;
-  let p = [plain(v.cel)];
-  if (v.showFixo && v.fixo) p.push(plain(v.fixo));
+  let p = [plain(normalizePhoneDisplay(v.cel))];
+  if (v.showFixo && v.fixo) p.push(plain(normalizePhoneDisplay(v.fixo)));
   return p.join(sep);
 }
 
@@ -1104,6 +1115,48 @@ function _gifCaptureCssSize(el) {
   return { w: w, h: h };
 }
 
+/**
+ * Empilha pixéis de vários frames da animação para quantizar uma paleta única que cobre
+ * cortina a mover-se — reduz bandas em tons intermediários sem paleta diferente por frame.
+ */
+function _gifMergedRGBAForPalette(frameRGBA, cw, ch, brandOnly) {
+  var n = frameRGBA.length;
+  if (n < 2) return frameRGBA[n - 1];
+  var picks;
+  if (brandOnly && n >= 10) {
+    picks = [
+      0,
+      Math.floor(n * 0.2),
+      Math.floor(n * 0.38),
+      Math.floor(n * 0.55),
+      n - 1,
+    ];
+  } else if (brandOnly && n >= 6) {
+    picks = [0, Math.floor(n * 0.33), Math.floor(n * 0.55), n - 1];
+  } else {
+    picks = [0, Math.floor(n * 0.42), n - 1];
+  }
+  var seen = {};
+  var uniq = [];
+  for (var pi = 0; pi < picks.length; pi++) {
+    var ix = picks[pi];
+    if (ix < 0) ix = 0;
+    if (ix >= n) ix = n - 1;
+    if (!seen[ix]) {
+      seen[ix] = true;
+      uniq.push(ix);
+    }
+  }
+  var stripH = uniq.length * ch;
+  var out = new Uint8ClampedArray(cw * stripH * 4);
+  var off = 0;
+  for (var ui = 0; ui < uniq.length; ui++) {
+    out.set(frameRGBA[uniq[ui]], off);
+    off += cw * ch * 4;
+  }
+  return out;
+}
+
 async function exportPreviewGif(opts) {
   const brandOnly = !!(opts && opts.brandOnly);
   /* v4: capturar a tabela direto (largura = SIG_LAYOUT.maxW) em vez do viewport do container.
@@ -1134,7 +1187,6 @@ async function exportPreviewGif(opts) {
     const GIFEncoder = ge.GIFEncoder || ge.default;
     const quantize = ge.quantize;
     const applyPalette = ge.applyPalette;
-    const prequantize = ge.prequantize;
     if (typeof GIFEncoder !== 'function' || typeof quantize !== 'function' || typeof applyPalette !== 'function') {
       throw new Error('Bibliotecas GIF não carregaram');
     }
@@ -1150,7 +1202,8 @@ async function exportPreviewGif(opts) {
     const supersample = brandOnly ? GIF_CAPTURE_SUPERSAMPLE_BRAND : GIF_CAPTURE_SUPERSAMPLE;
     const openFrames = Math.max(2, Math.round(EXPORT_OPEN_S * EXPORT_FPS));
     const frameDelayMs = Math.max(1, Math.round(1000 / EXPORT_FPS));
-    toast('Gerando GIF' + (brandOnly ? ' (só coluna da marca)… ' : '… ') + openFrames + ' frames (~' + EXPORT_FPS + ' fps), pode demorar');
+    const qFmt = 'rgb565';
+    toast('Gerando GIF' + (brandOnly ? ' (só coluna da marca)… ' : '… ') + openFrames + ' frames (~' + EXPORT_FPS + ' fps), nitidez extra — pode demorar mais');
 
     /* Desliga o scale do preview e congela a cortina. is-static usa --sig-curtain-pos. */
     scaler.style.transform = 'none';
@@ -1168,18 +1221,23 @@ async function exportPreviewGif(opts) {
     var naturalW = cap.w;
     var naturalH = cap.h;
 
-    const gif = GIFEncoder();
-    let cw = 0;
-    let ch = 0;
+    /** RGBA por frame — paleta única no último frame evita “cintilação” de cores entre frames do GIF. */
+    var frameRGBA = [];
+    var cw = 0;
+    var ch = 0;
     for (let i = 0; i < openFrames; i++) {
       const tNorm = openFrames <= 1 ? 1 : i / (openFrames - 1);
       const t = tNorm * 0.15;
       const mw = _curtainMaxWidth(t);
-      /* mw=0 (cortina cobrindo tudo) → mw=100 (totalmente fora à direita) */
       curtain.style.setProperty('--sig-curtain-pos', mw + '%');
       void curtain.offsetHeight;
       await new Promise(function (resolve) {
-        requestAnimationFrame(function () { requestAnimationFrame(resolve); });
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            if (brandOnly) requestAnimationFrame(resolve);
+            else resolve();
+          });
+        });
       });
       let canvas = await html2canvas(captureEl, {
         backgroundColor: '#ffffff',
@@ -1202,13 +1260,18 @@ async function exportPreviewGif(opts) {
       }
       const ctx = canvas.getContext('2d');
       const im = ctx.getImageData(0, 0, cw, ch);
-      if (typeof prequantize === 'function') {
-        prequantize(im.data, { roundRGB: 1 });
-      }
-      const palette = quantize(im.data, 256);
-      const index = applyPalette(im.data, palette);
+      frameRGBA.push(new Uint8ClampedArray(im.data));
+    }
+
+    var paletteSrc = _gifMergedRGBAForPalette(frameRGBA, cw, ch, brandOnly);
+    const palette = quantize(paletteSrc, 256, { format: qFmt });
+
+    const gif = GIFEncoder();
+    for (let i = 0; i < openFrames; i++) {
+      const index = applyPalette(frameRGBA[i], palette, qFmt);
       const isLast = (i === openFrames - 1);
-      const frameOpts = { palette: palette, delay: isLast ? HOLD_MS : frameDelayMs };
+      const frameOpts = { delay: isLast ? HOLD_MS : frameDelayMs };
+      if (i === 0) frameOpts.palette = palette;
       gif.writeFrame(index, cw, ch, frameOpts);
     }
     gif.finish();
