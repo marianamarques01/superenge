@@ -234,14 +234,14 @@ body{
 /* Refinos só no preview — espelhar SIG_LAYOUT.maxW / brandColW / logo (ver script). */
 #preview .superenge-sig{
   display:table;
-  width:512px;
+  width:580px;
   max-width:none;
   table-layout:fixed;
 }
 #preview .superenge-sig>tbody>tr>td:first-child,
 #preview .superenge-sig>tr>td:first-child{
-  width:143px!important;
-  max-width:143px;
+  width:162px!important;
+  max-width:162px;
   box-sizing:border-box;
 }
 #preview .superenge-sig>tbody>tr>td:last-child,
@@ -252,9 +252,9 @@ body{
 }
 #preview .superenge-sig > tbody > tr:first-child > td:first-child img[alt="Superenge"],
 #preview .superenge-sig > tr:first-child > td:first-child img[alt="Superenge"]{
-  width:121px;
-  max-width:121px;
-  height:76px;
+  width:137px;
+  max-width:137px;
+  height:87px;
   object-fit:contain;
 }
 
@@ -488,8 +488,8 @@ var SIG_EMAIL_LOGO_COLUMN_GIF_URL = SIG_EMAIL_IMAGE_BASE + 'superenge-v2-logo-co
 /** Se true e a logo de e-mail for SIG_EMAIL_LOGO_COLUMN_GIF_URL, não duplica selos (já vêm no GIF). */
 var SIG_EMAIL_BRAND_GIF_INCLUDES_SEALS = true;
 /** Pixeis lógicos do GIF exportado (devem bater com o .gif hospedado). Gmail distorce com height:auto. Ajuste após re-exportar (inspecionar ficheiro ou abrir o GIF no browser). */
-var SIG_EMAIL_BRAND_GIF_PX_W = 134;
-var SIG_EMAIL_BRAND_GIF_PX_H = 113;
+var SIG_EMAIL_BRAND_GIF_PX_W = 151;
+var SIG_EMAIL_BRAND_GIF_PX_H = 128;
 /** Repositório GitHub privado? Suba os PNG em ImgBB (ou similar) e preencha as URLs aqui — ou crie um repo público só com assinatura-email/. */
 var SIG_EMAIL_IMAGE_URLS = null;
 function getSigImageUrlsForEmail() {
@@ -558,26 +558,26 @@ function buildSignaturePlain(v) {
 
 const SIG_FF = "'Source Sans Pro',Arial,Helvetica,sans-serif";
 /**
- * ~512px ≈ 13,5 cm em 96 DPI (+10% face ao layout anterior). Coluna esquerda (logo + selos) mais larga que a versão compacta.
+ * ~580px em 96 DPI (+3% sobre o layout anterior). Coluna esquerda (logo + selos) mais larga que a versão compacta.
  * GIF exportado: ver GIF_CAPTURE_SUPERSAMPLE (supersampling antes da quantização).
  */
 const SIG_LAYOUT = Object.freeze({
-  maxW: 512,
-  brandColW: 143,
-  logoW: 121,
-  logoH: 76,
-  padBrandRight: 9,
-  padTextLeft: 12,
-  sealIsoW: 46,
-  sealIsoH: 32,
-  sealPbqpW: 42,
-  sealPbqpH: 30,
+  maxW: 580,
+  brandColW: 162,
+  logoW: 137,
+  logoH: 87,
+  padBrandRight: 10,
+  padTextLeft: 13,
+  sealIsoW: 53,
+  sealIsoH: 36,
+  sealPbqpW: 47,
+  sealPbqpH: 34,
   sealMarginL: -2,
-  fontNome: 14,
-  fontCargo: 11,
-  fontBody: 12,
-  fontSlogan: 9,
-  fontSloganV3: 10,
+  fontNome: 15,
+  fontCargo: 12,
+  fontBody: 13,
+  fontSlogan: 10,
+  fontSloganV3: 11,
 });
 /**
  * GIF animado: factor de supersampling do html2canvas antes de reduzir para o tamanho CSS.
@@ -636,9 +636,9 @@ function sigEmailRootBg(forEmail) {
 
 function sealsBlock(v, I, sealsTop) {
   if (!v.seals) return '';
-  const m = sealsTop != null ? sealsTop : '7px';
+  const m = sealsTop != null ? sealsTop : '8px';
   return `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:${m} auto 0;"><tr>
-      <td style="padding:0 6px 0 0;vertical-align:middle;"><img src="${I.iso}" alt="ISO 9001" width="${SIG_LAYOUT.sealIsoW}" height="${SIG_LAYOUT.sealIsoH}" style="display:block;border:0;width:${SIG_LAYOUT.sealIsoW}px;height:${SIG_LAYOUT.sealIsoH}px;margin-left:${SIG_LAYOUT.sealMarginL}px;"></td>
+      <td style="padding:0 7px 0 0;vertical-align:middle;"><img src="${I.iso}" alt="ISO 9001" width="${SIG_LAYOUT.sealIsoW}" height="${SIG_LAYOUT.sealIsoH}" style="display:block;border:0;width:${SIG_LAYOUT.sealIsoW}px;height:${SIG_LAYOUT.sealIsoH}px;margin-left:${SIG_LAYOUT.sealMarginL}px;"></td>
       <td style="padding:0;vertical-align:middle;"><img src="${I.pbqp}" alt="PBQP-H" width="${SIG_LAYOUT.sealPbqpW}" height="${SIG_LAYOUT.sealPbqpH}" style="display:block;border:0;width:${SIG_LAYOUT.sealPbqpW}px;height:${SIG_LAYOUT.sealPbqpH}px;"></td>
     </tr></table>`;
 }
@@ -678,8 +678,8 @@ function buildSignatureV1(v, I, forEmail) {
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
   const g1 = '3px';
   const gWeb = '3px';
-  const gSlogan = '6px';
-  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '6px');
+  const gSlogan = '7px';
+  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '7px');
   const sloganBlock = v.slogan ? sloganRowHtml(gSlogan) : '';
   const L = SIG_LAYOUT;
   const tw = sigTableWidthStyle(!!forEmail);
@@ -711,15 +711,15 @@ function buildSignatureV1(v, I, forEmail) {
 </table>`;
 }
 
-/** Versão 2 — gap vertical único ~7px entre blocos. */
+/** Versão 2 — gap vertical único ~8px entre blocos. */
 function buildSignatureV2(v, I, forEmail) {
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const g = '7px';
+  const g = '8px';
   const gWeb = '3px';
-  const gSlogan = '6px';
-  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '7px');
+  const gSlogan = '7px';
+  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '8px');
   const sloganBlock = v.slogan ? sloganRowHtml(gSlogan) : '';
   const L = SIG_LAYOUT;
   const tw = sigTableWidthStyle(!!forEmail);
@@ -758,13 +758,13 @@ function buildSignatureV2(v, I, forEmail) {
 function buildSignatureV3(v, I, forEmail) {
   const c = SIG_NAVY;
   const ff = SIG_FF;
-  const g = '7px';
+  const g = '8px';
   const gWeb = '3px';
-  const gSlogan = '6px';
+  const gSlogan = '7px';
   const nm = v.nome.toLocaleUpperCase('pt-BR');
   const cr = v.cargo.toLocaleUpperCase('pt-BR');
   const host = v.web.replace(/^https?:\/\//i,'').replace(/\/$/,'');
-  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '7px');
+  const sBelow = sealsBelowBrandColumn(v, I, forEmail, '8px');
   const sloganBlock = v.slogan ? sloganRowV3(gSlogan, c, ff) : '';
   const L = SIG_LAYOUT;
   const tw = sigTableWidthStyle(!!forEmail);
